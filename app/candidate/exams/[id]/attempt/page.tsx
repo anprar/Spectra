@@ -16,6 +16,7 @@ import {
   Send,
   Cloud
 } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 
 interface Option {
   key: string;
@@ -332,16 +333,21 @@ export default function ExamAttemptPage({
           </span>
         </div>
 
-        {/* Timer Box */}
-        <div className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg border transition-all ${
-          isUrgent 
-            ? 'bg-red-500/10 border-red-500/40 animate-pulse text-red-400' 
-            : 'bg-slate-900 border-slate-800 text-white'
-        }`}>
-          <Clock className={`w-4 h-4 ${isUrgent ? 'text-red-500' : 'text-cyan-400'}`} />
-          <span className="font-mono text-sm font-bold tracking-widest tabular-nums">
-            {formatTime(timeLeft)}
-          </span>
+        {/* Actions & Timer Box */}
+        <div className="flex items-center space-x-3">
+          <ThemeToggle />
+          
+          {/* Timer Box */}
+          <div className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg border transition-all ${
+            isUrgent 
+              ? 'bg-red-500/10 border-red-500/40 animate-pulse text-red-400' 
+              : 'bg-slate-900 border-slate-800 text-white'
+          }`}>
+            <Clock className={`w-4 h-4 ${isUrgent ? 'text-red-500' : 'text-cyan-400'}`} />
+            <span className="font-mono text-sm font-bold tracking-widest tabular-nums">
+              {formatTime(timeLeft)}
+            </span>
+          </div>
         </div>
       </header>
 

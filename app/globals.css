@@ -134,6 +134,10 @@ body {
 .light .border-\[\#00d8f6\] {
   border-color: #7c3aed !important;
 }
+.light .bg-\[\#00d8f6\] {
+  background-color: #7c3aed !important;
+  color: #ffffff !important;
+}
 .light .bg-\[\#00d8f6\]\/10 {
   background-color: rgba(124, 58, 237, 0.08) !important;
 }
@@ -166,7 +170,9 @@ body {
 .light .bg-yellow-500,
 .light .bg-yellow-500 *,
 .light .rounded-full.bg-gradient-to-br,
-.light .rounded-full.bg-gradient-to-br * {
+.light .rounded-full.bg-gradient-to-br *,
+.light .bg-gradient-to-r.from-violet-600,
+.light .bg-gradient-to-r.from-violet-600 * {
   color: #ffffff !important;
 }
 
