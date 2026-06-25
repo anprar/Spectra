@@ -150,7 +150,10 @@ export default async function AdminDashboardPage() {
             <Activity className="w-4.5 h-4.5 text-[#00d8f6]" />
             <span>Audit Log Aktivitas Keamanan & Sistem</span>
           </h2>
-          <span className="text-[10px] text-slate-500 font-mono">Real-time update</span>
+          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30">
+            <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Real-time Update</span>
+          </span>
         </div>
 
         <div className="overflow-x-auto">
@@ -174,7 +177,7 @@ export default async function AdminDashboardPage() {
                 recentLogs.map((log) => {
                   const label = getActionLabel(log.action);
                   return (
-                    <tr key={log.id} className="hover:bg-slate-900/40 transition-colors">
+                    <tr key={log.id} className="hover:bg-slate-100 dark:hover:bg-slate-900/40 transition-colors">
                       <td className="py-3.5 px-4 font-mono text-slate-400">
                         {new Date(log.createdAt).toLocaleString('id-ID', {
                           hour: '2-digit',

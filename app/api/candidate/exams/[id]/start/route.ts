@@ -123,7 +123,7 @@ export async function POST(
         const questionsInRule = await db.question.findMany({
           where: {
             bankId: rule.bankId,
-            category: rule.category,
+            category: (rule.category && rule.category !== 'Any') ? rule.category : undefined,
             difficulty: rule.difficulty !== 'Any' ? rule.difficulty : undefined,
             status: 'active',
           },

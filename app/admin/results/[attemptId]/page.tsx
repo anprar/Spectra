@@ -198,22 +198,22 @@ export default async function AdminAttemptReviewPage({
                   const isSelected = q.selectedOption === opt.key;
                   const isCorrectAnswer = q.correctOptionSnapshot === opt.key;
 
-                  let optionStyle = 'border-slate-800 bg-slate-950/20 text-slate-300';
+                  let optionStyle = 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/20 text-slate-700 dark:text-slate-300';
                   let statusIcon = null;
 
                   if (isSelected) {
                     if (q.isCorrect) {
                       // Correct selection
-                      optionStyle = 'bg-emerald-500/10 border-emerald-500 text-emerald-300 font-semibold';
+                      optionStyle = 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-300 font-semibold';
                       statusIcon = <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />;
                     } else {
                       // Incorrect selection
-                      optionStyle = 'bg-red-500/10 border-red-500 text-red-300 font-semibold';
+                      optionStyle = 'bg-red-500/10 border-red-500 text-red-750 dark:text-red-300 font-semibold';
                       statusIcon = <X className="w-4 h-4 text-red-400 flex-shrink-0" />;
                     }
                   } else if (isCorrectAnswer) {
                     // Correct answer not selected
-                    optionStyle = 'bg-emerald-950/10 border-emerald-500/50 border-dashed text-emerald-300';
+                    optionStyle = 'bg-emerald-500/5 dark:bg-emerald-950/10 border-emerald-500/50 border-dashed text-emerald-700 dark:text-emerald-300';
                     statusIcon = <Check className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 opacity-70" />;
                   }
 
@@ -223,7 +223,7 @@ export default async function AdminAttemptReviewPage({
                       className={`flex items-center justify-between p-3.5 rounded-lg border text-xs transition-colors duration-200 ${optionStyle}`}
                     >
                       <div className="flex items-start space-x-3 pr-4">
-                        <span className="font-mono font-bold bg-[#030712] text-slate-400 border border-slate-800 rounded px-1.5 py-0.5 text-[10px]">
+                        <span className="font-mono font-bold bg-slate-200 dark:bg-[#030712] text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-800 rounded px-1.5 py-0.5 text-[10px]">
                           {opt.key}
                         </span>
                         <span className="leading-relaxed">{opt.text}</span>
@@ -236,16 +236,17 @@ export default async function AdminAttemptReviewPage({
 
               {/* Explanation section */}
               {q.explanationSnapshot && (
-                <div className="mt-4 p-4 bg-[#030712] border border-slate-800 rounded-lg text-xs space-y-1.5">
+                <div className="mt-4 p-4 bg-slate-100 dark:bg-[#030712] border border-slate-200 dark:border-slate-800 rounded-lg text-xs space-y-1.5">
                   <span className="font-mono text-[10px] font-bold text-[#00d8f6] uppercase tracking-wider flex items-center">
                     <HelpCircle className="w-3.5 h-3.5 mr-1" />
                     <span>Pembahasan Soal</span>
                   </span>
-                  <p className="text-slate-400 leading-relaxed font-sans whitespace-pre-wrap">
+                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-sans whitespace-pre-wrap">
                     {q.explanationSnapshot}
                   </p>
                 </div>
               )}
+
 
             </div>
           );

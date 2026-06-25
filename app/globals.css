@@ -238,4 +238,13 @@ body {
   border-color: #fca5a5 !important; /* Soft, clean red border */
 }
 
+/* Safety overrides for translucent hover styles in light mode */
+.light .hover\:bg-slate-900\/40:hover {
+  background-color: var(--color-surface-2) !important;
+}
+.light .hover\:bg-slate-950\/40:hover {
+  background-color: var(--color-surface-2) !important;
+}
+
+
 

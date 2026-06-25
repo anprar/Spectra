@@ -109,6 +109,11 @@ export default function InstructorExamsPage() {
   const [examRules, setExamRules] = useState<ExamRule[]>([]);
   const [assignedCandidates, setAssignedCandidates] = useState<string[]>([]);
 
+  // Simplified UX states
+  const [shuffleMode, setShuffleMode] = useState('both');
+  const [selectionMode, setSelectionMode] = useState<'all_from_bank' | 'custom_rules'>('all_from_bank');
+  const [selectedBankId, setSelectedBankId] = useState('');
+
   // Load all required data on mount
   const loadAllData = async () => {
     try {
@@ -156,7 +161,6 @@ export default function InstructorExamsPage() {
     setTitle('');
     setDescription('');
     setDurationMinutes(60);
-    setQuestionCount(10);
     setPassScore(75);
     
     // Default dates (starts now, ends tomorrow)
@@ -172,12 +176,21 @@ export default function InstructorExamsPage() {
     
     setShuffleQuestions(true);
     setShuffleOptions(true);
+    setShuffleMode('both');
     setResultReleaseMode('score_only');
     setStatus('draft');
     setTrainingModuleId('');
     setExamRules([]);
     setAssignedCandidates([]);
     setFormError('');
+    setSelectionMode('all_from_bank');
+    if (banks.length > 0) {
+      setSelectedBankId(banks[0].id);
+      setQuestionCount(banks[0]._count?.questions || 0);
+    } else {
+      setSelectedBankId('');
+      setQuestionCount(10);
+    }
     setExamModalOpen(true);
   };
 
@@ -200,12 +213,34 @@ export default function InstructorExamsPage() {
     
     setShuffleQuestions(exam.shuffleQuestions);
     setShuffleOptions(exam.shuffleOptions);
+    if (exam.shuffleQuestions && exam.shuffleOptions) setShuffleMode('both');
+    else if (exam.shuffleQuestions && !exam.shuffleOptions) setShuffleMode('questions');
+    else if (!exam.shuffleQuestions && exam.shuffleOptions) setShuffleMode('options');
+    else setShuffleMode('none');
+
     setResultReleaseMode(exam.resultReleaseMode);
     setStatus(exam.status);
     setTrainingModuleId(exam.trainingModuleId || '');
     setExamRules(exam.rules || []);
     setAssignedCandidates(exam.assignments.map(a => a.candidateId));
     setFormError('');
+
+    // Determine selection mode from rules
+    const isAllFromBank = exam.rules.length === 1 && exam.rules[0].category === 'Any' && exam.rules[0].difficulty === 'Any';
+    if (isAllFromBank) {
+      setSelectionMode('all_from_bank');
+      setSelectedBankId(exam.rules[0].bankId);
+    } else {
+      setSelectionMode('custom_rules');
+      if (exam.rules.length > 0) {
+        setSelectedBankId(exam.rules[0].bankId);
+      } else if (banks.length > 0) {
+        setSelectedBankId(banks[0].id);
+      } else {
+        setSelectedBankId('');
+      }
+    }
+
     setExamModalOpen(true);
   };
 
@@ -214,29 +249,47 @@ export default function InstructorExamsPage() {
     setFormError('');
     setSubmitLoading(true);
 
-    // Basic validation: rule counts sum
-    const totalRulePicks = examRules.reduce((sum, r) => sum + parseInt(r.pickCount.toString() || '0'), 0);
-    if (totalRulePicks > 0 && totalRulePicks !== parseInt(questionCount.toString())) {
-      if (!confirm(`Peringatan: Jumlah penarikan soal dari aturan (${totalRulePicks}) tidak sama dengan target Jumlah Soal Ujian (${questionCount}). Ujian tetap dapat dibuat, namun disarankan untuk disamakan.\n\nApakah Anda ingin melanjutkan?`)) {
+    if (selectionMode === 'custom_rules') {
+      // Basic validation: rule counts sum
+      const totalRulePicks = examRules.reduce((sum, r) => sum + parseInt(r.pickCount.toString() || '0'), 0);
+      if (totalRulePicks > 0 && totalRulePicks !== parseInt(questionCount.toString())) {
+        if (!confirm(`Peringatan: Jumlah penarikan soal dari aturan (${totalRulePicks}) tidak sama dengan target Jumlah Soal Ujian (${questionCount}). Ujian tetap dapat dibuat, namun disarankan untuk disamakan.\n\nApakah Anda ingin melanjutkan?`)) {
+          setSubmitLoading(false);
+          return;
+        }
+      }
+    } else {
+      // In all_from_bank mode, validate we have a bank selected
+      if (!selectedBankId) {
+        setFormError('Harap pilih bank soal tujuan.');
         setSubmitLoading(false);
         return;
       }
     }
+
+    const finalRules = selectionMode === 'all_from_bank'
+      ? [{
+          bankId: selectedBankId,
+          category: 'Any',
+          difficulty: 'Any',
+          pickCount: parseInt(questionCount.toString()) || 0
+        }]
+      : examRules;
 
     const payload = {
       title,
       description,
       trainingModuleId: trainingModuleId || null,
       durationMinutes,
-      questionCount,
-      passScore,
+      questionCount: parseInt(questionCount.toString()) || 0,
+      passScore: parseFloat(passScore.toString()) || 0,
       availableFrom: new Date(availableFrom).toISOString(),
       availableUntil: new Date(availableUntil).toISOString(),
-      shuffleQuestions,
-      shuffleOptions,
+      shuffleQuestions: shuffleMode === 'both' || shuffleMode === 'questions',
+      shuffleOptions: shuffleMode === 'both' || shuffleMode === 'options',
       resultReleaseMode,
       status,
-      rules: examRules,
+      rules: finalRules,
       candidateIds: assignedCandidates
     };
 
@@ -263,6 +316,7 @@ export default function InstructorExamsPage() {
       setSubmitLoading(false);
     }
   };
+
 
   const handleDeleteExam = async (id: string, examTitle: string) => {
     if (!confirm(`Apakah Anda yakin ingin menghapus ujian "${examTitle}"?\nSemua riwayat pengerjaan kandidat untuk ujian ini akan terhapus permanen.`)) {
@@ -748,151 +802,224 @@ export default function InstructorExamsPage() {
                 </div>
               </div>
 
-              {/* Toggle Settings */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950/20 border border-slate-850 p-3.5 rounded-xl">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="shuffleQuestions"
-                    checked={shuffleQuestions}
-                    onChange={(e) => setShuffleQuestions(e.target.checked)}
-                    disabled={submitLoading}
-                    className="w-4 h-4 rounded bg-slate-900 border-slate-850 text-pink-500 focus:ring-0"
-                  />
-                  <label htmlFor="shuffleQuestions" className="text-[11px] font-semibold text-slate-300 cursor-pointer select-none">
-                    Acak Urutan Soal
+              {/* Shuffling & Result Release Settings */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950/20 border border-slate-850 p-4 rounded-xl">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-400">
+                    Metode Pengacakan Ujian
                   </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="shuffleOptions"
-                    checked={shuffleOptions}
-                    onChange={(e) => setShuffleOptions(e.target.checked)}
+                  <select
+                    value={shuffleMode}
+                    onChange={(e) => setShuffleMode(e.target.value)}
                     disabled={submitLoading}
-                    className="w-4 h-4 rounded bg-slate-900 border-slate-850 text-pink-500 focus:ring-0"
-                  />
-                  <label htmlFor="shuffleOptions" className="text-[11px] font-semibold text-slate-300 cursor-pointer select-none">
-                    Acak Opsi Pilihan
-                  </label>
+                    className="w-full px-3 py-2 bg-[#111827] border border-slate-800 rounded-lg text-white font-sans text-xs focus:outline-none focus:border-slate-600 transition-colors"
+                  >
+                    <option value="both">Acak Soal & Pilihan Jawaban</option>
+                    <option value="questions">Acak Urutan Soal Saja</option>
+                    <option value="options">Acak Pilihan Jawaban Saja</option>
+                    <option value="none">Jangan Diacak (Urutan Tetap)</option>
+                  </select>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-400">
+                    Kebijakan Rilis Hasil
+                  </label>
                   <select
                     value={resultReleaseMode}
                     onChange={(e) => setResultReleaseMode(e.target.value)}
                     disabled={submitLoading}
-                    className="bg-transparent text-[11px] font-semibold text-slate-300 focus:outline-none w-full"
+                    className="w-full px-3 py-2 bg-[#111827] border border-slate-800 rounded-lg text-white font-sans text-xs focus:outline-none focus:border-slate-600 transition-colors"
                   >
-                    <option value="score_only" className="bg-[#0b0f19]">Rilis Nilai Saja</option>
-                    <option value="full_review" className="bg-[#0b0f19]">Rilis Nilai & Pembahasan</option>
-                    <option value="hidden" className="bg-[#0b0f19]">Sembunyikan Hasil</option>
+                    <option value="score_only">Rilis Nilai Saja</option>
+                    <option value="full_review">Rilis Nilai & Pembahasan</option>
+                    <option value="hidden">Sembunyikan Hasil</option>
                   </select>
                 </div>
               </div>
 
-              {/* Rule Builder Sub-section */}
-              <div className="space-y-3 pt-4 border-t border-slate-800/60">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-pink-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Settings className="w-4 h-4" />
-                    <span>Aturan Tarik Soal Acak ({examRules.length})</span>
-                  </span>
+              {/* Question Selection Method */}
+              <div className="space-y-3 pt-2">
+                <label className="block text-xs font-semibold text-slate-400">
+                  Metode Pemilihan Soal <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={handleAddRule}
-                    disabled={submitLoading}
-                    className="px-3 py-1.5 bg-pink-500/10 hover:bg-pink-500/25 border border-pink-500/20 text-pink-400 hover:text-pink-300 rounded-lg text-xs font-semibold transition-all flex items-center gap-1"
+                    onClick={() => {
+                      setSelectionMode('all_from_bank');
+                      // Automatically set question count to selected bank's question count if available
+                      const bank = banks.find(b => b.id === selectedBankId);
+                      if (bank) {
+                        setQuestionCount(bank._count?.questions || 0);
+                      }
+                    }}
+                    className={`px-4 py-3 rounded-xl border text-xs font-semibold font-sans transition-all text-left flex flex-col justify-center space-y-1.5 ${
+                      selectionMode === 'all_from_bank'
+                        ? 'bg-pink-500/10 border-pink-500 text-pink-400 font-bold'
+                        : 'bg-[#111827] border-slate-800 text-slate-400 hover:border-slate-700'
+                    }`}
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Tambah Aturan</span>
+                    <span className="text-xs">Tarik Semua dari Bank Soal (Rekomendasi)</span>
+                    <span className="text-[10px] font-normal text-slate-500 leading-tight">Mengambil seluruh soal aktif dari satu bank secara langsung dan mudah.</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectionMode('custom_rules');
+                      if (examRules.length === 0) {
+                        handleAddRule();
+                      }
+                    }}
+                    className={`px-4 py-3 rounded-xl border text-xs font-semibold font-sans transition-all text-left flex flex-col justify-center space-y-1.5 ${
+                      selectionMode === 'custom_rules'
+                        ? 'bg-pink-500/10 border-pink-500 text-pink-400 font-bold'
+                        : 'bg-[#111827] border-slate-800 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <span className="text-xs">Gunakan Aturan Acak Kustom (Rule Builder)</span>
+                    <span className="text-[10px] font-normal text-slate-500 leading-tight">Menarik soal acak per kategori dan kesulitan dengan perbandingan tertentu.</span>
                   </button>
                 </div>
-
-                {examRules.length === 0 ? (
-                  <div className="border border-dashed border-slate-800 rounded-xl p-5 text-center text-slate-600 text-xs font-sans">
-                    Belum ada aturan penarikan soal. Ujian akan menarik secara acak merata jika tidak ditentukan.
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                    {examRules.map((rule, idx) => (
-                      <div key={idx} className="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-slate-950/40 border border-slate-850 p-2.5 rounded-xl items-center">
-                        
-                        {/* 1. Bank Select */}
-                        <div className="sm:col-span-4 space-y-1">
-                          <span className="text-[9px] text-slate-500 uppercase block font-mono">Bank Soal</span>
-                          <select
-                            value={rule.bankId}
-                            onChange={(e) => handleUpdateRule(idx, 'bankId', e.target.value)}
-                            disabled={submitLoading}
-                            className="w-full bg-[#111827] border border-slate-800 rounded px-2 py-1 text-[11px] text-white focus:outline-none"
-                          >
-                            {banks.map(b => (
-                              <option key={b.id} value={b.id}>{b.name}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* 2. Category Input */}
-                        <div className="sm:col-span-3 space-y-1">
-                          <span className="text-[9px] text-slate-500 uppercase block font-mono">Kategori</span>
-                          <input
-                            type="text"
-                            required
-                            placeholder="e.g. Kode Etik"
-                            value={rule.category}
-                            onChange={(e) => handleUpdateRule(idx, 'category', e.target.value)}
-                            disabled={submitLoading}
-                            className="w-full bg-[#111827] border border-slate-800 rounded px-2 py-0.5 text-[11px] text-white focus:outline-none placeholder-slate-700"
-                          />
-                        </div>
-
-                        {/* 3. Difficulty Select */}
-                        <div className="sm:col-span-2 space-y-1">
-                          <span className="text-[9px] text-slate-500 uppercase block font-mono">Kesulitan</span>
-                          <select
-                            value={rule.difficulty}
-                            onChange={(e) => handleUpdateRule(idx, 'difficulty', e.target.value)}
-                            disabled={submitLoading}
-                            className="w-full bg-[#111827] border border-slate-800 rounded px-2 py-1 text-[11px] text-white focus:outline-none"
-                          >
-                            <option value="Any">Any</option>
-                            <option value="Easy">Easy</option>
-                            <option value="Medium">Medium</option>
-                            <option value="Hard">Hard</option>
-                          </select>
-                        </div>
-
-                        {/* 4. Pick Count */}
-                        <div className="sm:col-span-2 space-y-1">
-                          <span className="text-[9px] text-slate-500 uppercase block font-mono">Jumlah</span>
-                          <input
-                            type="number"
-                            required
-                            min={1}
-                            value={rule.pickCount}
-                            onChange={(e) => handleUpdateRule(idx, 'pickCount', parseInt(e.target.value) || 0)}
-                            disabled={submitLoading}
-                            className="w-full bg-[#111827] border border-slate-800 rounded px-2 py-0.5 text-[11px] text-white font-mono focus:outline-none"
-                          />
-                        </div>
-
-                        {/* 5. Remove */}
-                        <div className="sm:col-span-1 text-center pt-3 sm:pt-0">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveRule(idx)}
-                            className="p-1.5 hover:bg-slate-900 text-red-400 hover:text-red-300 rounded transition-colors"
-                            title="Hapus Aturan"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
+
+              {/* Dynamic Section based on Selection Mode */}
+              {selectionMode === 'all_from_bank' ? (
+                <div className="space-y-3 bg-slate-950/20 border border-slate-850 p-4 rounded-xl">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-slate-400">
+                      Pilih Bank Soal Tujuan <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={selectedBankId}
+                      onChange={(e) => {
+                        const bankId = e.target.value;
+                        setSelectedBankId(bankId);
+                        const bank = banks.find(b => b.id === bankId);
+                        if (bank) {
+                          setQuestionCount(bank._count?.questions || 0);
+                        }
+                      }}
+                      disabled={submitLoading}
+                      className="w-full px-3 py-2 bg-[#111827] border border-slate-800 rounded-lg text-white font-sans text-xs focus:outline-none focus:border-slate-600 transition-colors"
+                    >
+                      <option value="" disabled>-- Pilih Bank Soal --</option>
+                      {banks.map(b => (
+                        <option key={b.id} value={b.id}>
+                          {b.name} ({b._count?.questions || 0} Soal Aktif)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-normal">
+                    Sistem akan menarik seluruh soal aktif dari bank soal terpilih. Jumlah Soal Ujian telah otomatis disinkronkan menjadi <span className="text-pink-400 font-semibold font-mono">{questionCount} soal</span>. Anda tidak perlu menyusun aturan satu-per-satu.
+                  </p>
+                </div>
+              ) : (
+                /* Rule Builder Sub-section */
+                <div className="space-y-3 pt-2 border-t border-slate-800/40">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-pink-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <Settings className="w-4 h-4" />
+                      <span>Aturan Tarik Soal Acak ({examRules.length})</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleAddRule}
+                      disabled={submitLoading}
+                      className="px-3 py-1.5 bg-pink-500/10 hover:bg-pink-500/25 border border-pink-500/20 text-pink-400 hover:text-pink-300 rounded-lg text-xs font-semibold transition-all flex items-center gap-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Tambah Aturan</span>
+                    </button>
+                  </div>
+
+                  {examRules.length === 0 ? (
+                    <div className="border border-dashed border-slate-800 rounded-xl p-5 text-center text-slate-600 text-xs font-sans">
+                      Belum ada aturan penarikan soal. Klik "Tambah Aturan" di atas untuk menambahkan.
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {examRules.map((rule, idx) => (
+                        <div key={idx} className="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-slate-950/40 border border-slate-850 p-2.5 rounded-xl items-center">
+                          
+                          {/* 1. Bank Select */}
+                          <div className="sm:col-span-4 space-y-1">
+                            <span className="text-[9px] text-slate-500 uppercase block font-mono">Bank Soal</span>
+                            <select
+                              value={rule.bankId}
+                              onChange={(e) => handleUpdateRule(idx, 'bankId', e.target.value)}
+                              disabled={submitLoading}
+                              className="w-full bg-[#111827] border border-slate-800 rounded px-2 py-1 text-[11px] text-white focus:outline-none"
+                            >
+                              {banks.map(b => (
+                                <option key={b.id} value={b.id}>{b.name}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {/* 2. Category Input */}
+                          <div className="sm:col-span-3 space-y-1">
+                            <span className="text-[9px] text-slate-500 uppercase block font-mono">Kategori</span>
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. Kode Etik"
+                              value={rule.category}
+                              onChange={(e) => handleUpdateRule(idx, 'category', e.target.value)}
+                              disabled={submitLoading}
+                              className="w-full bg-[#111827] border border-slate-800 rounded px-2 py-0.5 text-[11px] text-white focus:outline-none placeholder-slate-700"
+                            />
+                          </div>
+
+                          {/* 3. Difficulty Select */}
+                          <div className="sm:col-span-2 space-y-1">
+                            <span className="text-[9px] text-slate-500 uppercase block font-mono">Kesulitan</span>
+                            <select
+                              value={rule.difficulty}
+                              onChange={(e) => handleUpdateRule(idx, 'difficulty', e.target.value)}
+                              disabled={submitLoading}
+                              className="w-full bg-[#111827] border border-slate-800 rounded px-2 py-1 text-[11px] text-white focus:outline-none"
+                            >
+                              <option value="Any">Any</option>
+                              <option value="Easy">Easy</option>
+                              <option value="Medium">Medium</option>
+                              <option value="Hard">Hard</option>
+                            </select>
+                          </div>
+
+                          {/* 4. Pick Count */}
+                          <div className="sm:col-span-2 space-y-1">
+                            <span className="text-[9px] text-slate-500 uppercase block font-mono">Jumlah</span>
+                            <input
+                              type="number"
+                              required
+                              min={1}
+                              value={rule.pickCount}
+                              onChange={(e) => handleUpdateRule(idx, 'pickCount', parseInt(e.target.value) || 0)}
+                              disabled={submitLoading}
+                              className="w-full bg-[#111827] border border-slate-800 rounded px-2 py-0.5 text-[11px] text-white font-mono focus:outline-none"
+                            />
+                          </div>
+
+                          {/* 5. Remove */}
+                          <div className="sm:col-span-1 text-center pt-3 sm:pt-0">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveRule(idx)}
+                              className="p-1.5 hover:bg-slate-900 text-red-400 hover:text-red-300 rounded transition-colors"
+                              title="Hapus Aturan"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
 
               {/* Candidate Assignment Sub-section */}
               <div className="space-y-2 pt-4 border-t border-slate-800/60">

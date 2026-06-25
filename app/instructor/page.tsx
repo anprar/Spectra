@@ -150,8 +150,9 @@ export default async function InstructorDashboardPage() {
               >
                 <span>Ekspor CSV</span>
               </a>
-              <span className="text-[10px] font-mono bg-slate-800 text-slate-400 px-2 py-0.5 rounded">
-                Real-time
+              <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Real-time</span>
               </span>
             </div>
           </div>
@@ -176,9 +177,10 @@ export default async function InstructorDashboardPage() {
                   </tr>
                 ) : (
                   recentAttempts.map((attempt) => (
-                    <tr key={attempt.id} className="hover:bg-slate-900/40 transition-colors">
+                    <tr key={attempt.id} className="hover:bg-slate-100 dark:hover:bg-slate-900/40 transition-colors">
                       <td className="py-3 px-2">
                         <div className="font-medium text-white">{attempt.candidate.fullName}</div>
+
                         <div className="text-[10px] text-slate-500">{attempt.candidate.email}</div>
                       </td>
                       <td className="py-3 px-2">

@@ -373,8 +373,8 @@ export default function ExamAttemptPage({
                     isCurrent
                       ? 'bg-gradient-to-r from-violet-600 to-cyan-500 border-transparent text-white shadow-lg'
                       : isAnswered
-                        ? 'bg-[#111827] border-emerald-500/40 text-emerald-400 hover:border-emerald-500'
-                        : 'bg-[#111827]/40 border-slate-800 hover:border-slate-700 text-slate-500'
+                        ? 'bg-emerald-500/10 dark:bg-[#111827] border-emerald-500/30 dark:border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:border-emerald-500'
+                        : 'bg-slate-50 dark:bg-[#111827]/40 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:border-slate-700 text-slate-500 dark:text-slate-500'
                   }`}
                 >
                   {index + 1}
@@ -410,14 +410,14 @@ export default function ExamAttemptPage({
                     disabled={submitLoading}
                     className={`w-full text-left px-5 py-3 rounded-xl border flex items-start space-x-3.5 transition-all focus:outline-none ${
                       isChecked
-                        ? 'bg-gradient-to-r from-violet-950/10 to-cyan-950/10 border-[#00d8f6]/50 text-[#00d8f6] font-medium'
-                        : 'bg-[#111827]/40 border-slate-800/80 hover:border-slate-700 text-slate-300'
+                        ? 'bg-violet-500/5 dark:bg-gradient-to-r dark:from-violet-950/10 dark:to-cyan-950/10 border-[#00d8f6]/35 dark:border-[#00d8f6]/50 text-[#00d8f6] font-medium'
+                        : 'bg-slate-50 dark:bg-[#111827]/40 border-slate-200 dark:border-slate-800/80 hover:bg-slate-100 dark:hover:border-slate-700 text-slate-750 dark:text-slate-300'
                     }`}
                   >
                     <span className={`font-mono text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border transition-all ${
                       isChecked
-                        ? 'bg-[#00d8f6] border-[#00d8f6] text-slate-950'
-                        : 'bg-slate-900 border-slate-800 text-slate-400'
+                        ? 'bg-[#00d8f6] border-[#00d8f6] text-white font-bold'
+                        : 'bg-slate-200 dark:bg-slate-900 border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400'
                     }`}>
                       {opt.key}
                     </span>

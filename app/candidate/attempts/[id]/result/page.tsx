@@ -209,14 +209,14 @@ export default async function CandidateResultPage({
                       const isSelected = q.selectedOption === opt.key;
                       const isCorrectKey = q.correctOptionSnapshot === opt.key;
 
-                      let optStyles = 'bg-[#111827]/40 border-slate-800/80 text-slate-400';
-                      let keyStyles = 'bg-slate-900 border-slate-800 text-slate-500';
+                      let optStyles = 'bg-slate-50 dark:bg-[#111827]/40 border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-400';
+                      let keyStyles = 'bg-slate-200 dark:bg-slate-900 border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-500';
 
                       if (isCorrectKey) {
-                        optStyles = 'bg-emerald-950/20 border-emerald-500/40 text-emerald-300 font-medium';
+                        optStyles = 'bg-emerald-500/10 dark:bg-emerald-950/20 border-emerald-500/30 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-medium';
                         keyStyles = 'bg-emerald-500 border-emerald-500 text-white';
                       } else if (isSelected && !isCorrectKey) {
-                        optStyles = 'bg-red-950/20 border-red-500/40 text-red-300';
+                        optStyles = 'bg-red-500/10 dark:bg-red-950/20 border-red-500/30 dark:border-red-500/40 text-red-700 dark:text-red-300';
                         keyStyles = 'bg-red-500 border-red-500 text-white';
                       }
 
@@ -236,14 +236,15 @@ export default async function CandidateResultPage({
 
                   {/* Explanation Block */}
                   {q.explanationSnapshot && (
-                    <div className="mt-4 p-3.5 bg-slate-950/80 rounded-lg border border-slate-800/40 text-xs text-slate-400 font-sans leading-relaxed flex items-start space-x-2">
+                    <div className="mt-4 p-3.5 bg-slate-100 dark:bg-slate-950/80 rounded-lg border border-slate-200 dark:border-slate-800/40 text-xs text-slate-600 dark:text-slate-400 font-sans leading-relaxed flex items-start space-x-2">
                       <AlertTriangle className="w-4 h-4 text-slate-500 flex-shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-semibold text-slate-300 block mb-0.5">Pembahasan:</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-300 block mb-0.5">Pembahasan:</span>
                         <p>{q.explanationSnapshot}</p>
                       </div>
                     </div>
                   )}
+
 
                 </div>
               );
