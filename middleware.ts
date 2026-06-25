@@ -67,6 +67,13 @@ async function verifySession(token: string): Promise<any | null> {
   }
 }
 
+// Safely construct absolute redirect URLs based on headers (for proxy/public IP compatibility)
+function getAbsoluteRedirectUrl(path: string, request: NextRequest): URL {
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'localhost:3000';
+  const proto = request.headers.get('x-forwarded-proto') || 'http';
+  return new URL(path, `${proto}://${host}`);
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -94,13 +101,13 @@ export async function middleware(request: NextRequest) {
         instructor: '/instructor',
         candidate: '/candidate',
       };
-      const redirectUrl = new URL(dashboardMap[session.role] || '/login', request.url);
+      const redirectUrl = getAbsoluteRedirectUrl(dashboardMap[session.role] || '/login', request);
       return NextResponse.redirect(redirectUrl);
     }
     
     if (pathname === '/') {
       // Redirect home page to login if not logged in
-      return NextResponse.redirect(new URL('/login', request.url));
+      return NextResponse.redirect(getAbsoluteRedirectUrl('/login', request));
     }
     
     return NextResponse.next();
@@ -109,7 +116,7 @@ export async function middleware(request: NextRequest) {
   // 4. Protect routes based on role
   if (!session) {
     // Not authenticated: Redirect to login
-    const loginUrl = new URL('/login', request.url);
+    const loginUrl = getAbsoluteRedirectUrl('/login', request);
     // If it's an API request, return a 401 JSON instead of a redirect
     if (pathname.startsWith('/api')) {
       return new NextResponse(
@@ -123,20 +130,20 @@ export async function middleware(request: NextRequest) {
   // Enforce role-based access
   if (pathname.startsWith('/admin')) {
     if (session.role !== 'admin') {
-      return NextResponse.redirect(new URL('/login', request.url));
+      return NextResponse.redirect(getAbsoluteRedirectUrl('/login', request));
     }
   }
 
   if (pathname.startsWith('/instructor')) {
     if (session.role !== 'instructor' && session.role !== 'admin') {
-      return NextResponse.redirect(new URL('/login', request.url));
+      return NextResponse.redirect(getAbsoluteRedirectUrl('/login', request));
     }
   }
 
   if (pathname.startsWith('/candidate')) {
     if (session.role !== 'candidate' && session.role !== 'admin') {
       // Let admin inspect candidate screens, but redirect others
-      return NextResponse.redirect(new URL('/login', request.url));
+      return NextResponse.redirect(getAbsoluteRedirectUrl('/login', request));
     }
   }
 

@@ -25,7 +25,12 @@ export async function POST(request: NextRequest) {
     if (acceptHeader.includes('application/json')) {
       return NextResponse.json({ success: true, message: 'Berhasil keluar.' });
     }
-    return NextResponse.redirect(new URL('/login', request.url), { status: 303 });
+    
+    // Safely construct absolute redirect URL based on host headers to support public IP/proxies
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'localhost:3000';
+    const proto = request.headers.get('x-forwarded-proto') || 'http';
+    const redirectUrl = new URL('/login', `${proto}://${host}`);
+    return NextResponse.redirect(redirectUrl, { status: 303 });
   } catch (error) {
     console.error('Logout error:', error);
     return NextResponse.json({ error: 'Terjadi kesalahan server saat memproses logout.' }, { status: 500 });
