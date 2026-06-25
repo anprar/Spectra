@@ -924,7 +924,7 @@ export default function InstructorExamsPage() {
                           onClick={() => handleToggleCandidate(c.id)}
                           className={`flex items-center space-x-2.5 p-2 rounded-lg border cursor-pointer select-none transition-all ${
                             isChecked 
-                              ? 'bg-pink-950/10 border-pink-500/30 text-white' 
+                              ? 'bg-violet-500/10 dark:bg-pink-950/20 border-violet-500/40 dark:border-pink-500/30 text-violet-700 dark:text-pink-300 font-medium' 
                               : 'bg-slate-950/40 border-slate-900 hover:border-slate-800 text-slate-400 hover:text-slate-200'
                           }`}
                         >

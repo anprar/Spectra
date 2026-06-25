@@ -212,19 +212,19 @@ export default function ExamReadinessPage({
 
           {/* Schedule warning messages */}
           {scheduleState === 'upcoming' && (
-            <div className="p-3.5 bg-amber-950/40 border border-amber-500/20 rounded-lg text-amber-300 text-xs font-sans">
-              <strong>Ujian Belum Dibuka:</strong> Sesi penjadwalan ujian belum dimulai. Ujian baru akan dibuka pada: <span className="font-mono font-bold text-white">{new Date(exam.availableFrom).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>.
+            <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-700 dark:text-amber-400 text-xs font-sans">
+              <strong>Ujian Belum Dibuka:</strong> Sesi penjadwalan ujian belum dimulai. Ujian baru akan dibuka pada: <span className="font-mono font-bold text-slate-800 dark:text-white">{new Date(exam.availableFrom).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>.
             </div>
           )}
 
           {scheduleState === 'expired' && (
-            <div className="p-3.5 bg-red-950/40 border border-red-500/20 rounded-lg text-red-300 text-xs font-sans">
-              <strong>Ujian Sudah Selesai:</strong> Batas akhir jadwal akses ujian telah terlewati (Selesai pada: <span className="font-mono font-bold text-white">{new Date(exam.availableUntil).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>). Anda tidak dapat lagi memulai pengerjaan.
+            <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-700 dark:text-red-400 text-xs font-sans">
+              <strong>Ujian Sudah Selesai:</strong> Batas akhir jadwal akses ujian telah terlewati (Selesai pada: <span className="font-mono font-bold text-slate-800 dark:text-white">{new Date(exam.availableUntil).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>). Anda tidak dapat lagi memulai pengerjaan.
             </div>
           )}
 
           {error && (
-            <div className="p-3 bg-red-950/40 border border-red-500/30 rounded-lg text-red-300 text-xs animate-pulse-subtle">
+            <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-700 dark:text-red-400 text-xs font-sans font-medium">
               {error}
             </div>
           )}

@@ -104,26 +104,41 @@ export async function POST(
     // 6. Generate and Pull Random Questions based on rules
     const questionsToSnapshot: any[] = [];
 
-    for (const rule of exam.rules) {
-      // Find active questions in the specified bank, category, and difficulty
-      const questionsInRule = await db.question.findMany({
-        where: {
-          bankId: rule.bankId,
-          category: rule.category,
-          difficulty: rule.difficulty !== 'Any' ? rule.difficulty : undefined,
-          status: 'active',
-        },
+    if (exam.rules.length === 0) {
+      // Fallback: Pull questions randomly from any active questions in the system
+      const allActiveQuestions = await db.question.findMany({
+        where: { status: 'active' },
         include: {
           options: {
             orderBy: { sortOrder: 'asc' },
           },
         },
       });
-
-      // Shuffle and pick
-      const shuffled = questionsInRule.sort(() => 0.5 - Math.random());
-      const picked = shuffled.slice(0, rule.pickCount);
+      const shuffled = allActiveQuestions.sort(() => 0.5 - Math.random());
+      const picked = shuffled.slice(0, exam.questionCount);
       questionsToSnapshot.push(...picked);
+    } else {
+      for (const rule of exam.rules) {
+        // Find active questions in the specified bank, category, and difficulty
+        const questionsInRule = await db.question.findMany({
+          where: {
+            bankId: rule.bankId,
+            category: rule.category,
+            difficulty: rule.difficulty !== 'Any' ? rule.difficulty : undefined,
+            status: 'active',
+          },
+          include: {
+            options: {
+              orderBy: { sortOrder: 'asc' },
+            },
+          },
+        });
+
+        // Shuffle and pick
+        const shuffled = questionsInRule.sort(() => 0.5 - Math.random());
+        const picked = shuffled.slice(0, rule.pickCount);
+        questionsToSnapshot.push(...picked);
+      }
     }
 
     // Shuffle final questions if exam config demands it
