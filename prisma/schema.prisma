@@ -1,0 +1,261 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. Model Pengguna & Autentikasi
+model User {
+  id             String             @id @default(uuid())
+  email          String             @unique
+  passwordHash   String
+  fullName       String
+  role           String             // admin, instructor, candidate
+  isActive       Boolean            @default(true)
+  lastLoginAt    DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  
+  // Relasi
+  modulesCreated TrainingModule[]
+  assignments    ExamAssignment[]   @relation("CandidateAssignments")
+  assignedByUs   ExamAssignment[]   @relation("InstructorAssignments")
+  attempts       ExamAttempt[]
+  questionBanks  QuestionBank[]
+  examsCreated   Exam[]
+  exports        ResultExport[]
+  auditLogs      AuditLog[]
+}
+
+// 2. Modul Pelatihan (Training Module)
+model TrainingModule {
+  id          String            @id @default(uuid())
+  title       String
+  slug        String            @unique
+  summary     String
+  status      String            // draft, published
+  createdBy   User              @relation(fields: [createdById], references: [id])
+  createdById String
+  publishedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relasi
+  lessons     TrainingLesson[]
+  exams       Exam[]
+}
+
+// 3. Pelajaran Pelatihan (Training Lesson)
+model TrainingLesson {
+  id          String         @id @default(uuid())
+  module      TrainingModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId    String
+  title       String
+  contentType String         // text, pdf, video, link
+  contentBody String?        // Teks markdown atau isi pembelajaran
+  filePath    String?        // Path file lokal (PDF/Video) jika diunggah
+  externalUrl String?        // URL eksternal (YouTube/Drive)
+  sortOrder   Int
+  isRequired  Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Relasi
+  progress    TrainingProgress[]
+}
+
+// 4. Progress Pelatihan Kandidat
+model TrainingProgress {
+  id           String         @id @default(uuid())
+  userId       String
+  moduleId     String
+  lesson       TrainingLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId     String
+  status       String         // in_progress, completed
+  completedAt  DateTime?
+  lastViewedAt DateTime       @default(now())
+
+  @@unique([userId, lessonId])
+}
+
+// 5. Bank Soal (Question Bank)
+model QuestionBank {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  owner       User       @relation(fields: [ownerId], references: [id])
+  ownerId     String
+  visibility  String     // private, public
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relasi
+  questions   Question[]
+  rules       ExamQuestionRule[]
+}
+
+// 6. Soal Pilihan Ganda (Question)
+model Question {
+  id              String           @id @default(uuid())
+  bank            QuestionBank     @relation(fields: [bankId], references: [id], onDelete: Cascade)
+  bankId          String
+  category        String           // Kategori soal (misal: Logika, Teknis)
+  difficulty      String           // Easy, Medium, Hard
+  questionText    String
+  explanationText String?
+  status          String           // active, archived
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relasi
+  options         QuestionOption[]
+}
+
+// 7. Opsi Pilihan Jawaban (Question Option)
+model QuestionOption {
+  id         String   @id @default(uuid())
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId String
+  optionKey  String   // A, B, C, D, E
+  optionText String
+  isCorrect  Boolean  @default(false)
+  sortOrder  Int
+
+  @@unique([questionId, optionKey])
+}
+
+// 8. Konfigurasi Ujian (Exam)
+model Exam {
+  id                     String             @id @default(uuid())
+  title                  String
+  description            String?
+  trainingModule         TrainingModule?    @relation(fields: [trainingModuleId], references: [id])
+  trainingModuleId       String?            // Prasyarat modul jika diaktifkan
+  durationMinutes        Int
+  questionCount          Int                // Jumlah soal yang ditarik acak
+  shuffleQuestions       Boolean            @default(true)
+  shuffleOptions         Boolean            @default(true)
+  passScore              Float              // Nilai kelulusan dalam persen (misal: 75.0)
+  availableFrom          DateTime
+  availableUntil         DateTime
+  allowReviewAfterSubmit Boolean            @default(false)
+  resultReleaseMode      String             // hidden, score_only, full_review
+  status                 String             // draft, published, archived
+  createdBy              User               @relation(fields: [createdById], references: [id])
+  createdById            String
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  // Relasi
+  rules                  ExamQuestionRule[]
+  assignments            ExamAssignment[]
+  attempts               ExamAttempt[]
+}
+
+// 9. Aturan Penarikan Soal Acak
+model ExamQuestionRule {
+  id         String       @id @default(uuid())
+  exam       Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  examId     String
+  bank       QuestionBank @relation(fields: [bankId], references: [id])
+  bankId     String
+  category   String       // Kategori soal yang diambil
+  difficulty String       // Easy, Medium, Hard, Any
+  pickCount  Int          // Jumlah soal yang ditarik dari aturan ini
+}
+
+// 10. Penugasan Ujian Kandidat
+model ExamAssignment {
+  id                String        @id @default(uuid())
+  exam              Exam          @relation(fields: [examId], references: [id], onDelete: Cascade)
+  examId            String
+  candidate         User          @relation("CandidateAssignments", fields: [candidateId], references: [id], onDelete: Cascade)
+  candidateId       String
+  assignedBy        User          @relation("InstructorAssignments", fields: [assignedById], references: [id])
+  assignedById      String
+  assignedAt        DateTime      @default(now())
+  attemptLimit      Int           @default(1)
+  extraTimeMinutes  Int           @default(0)  // Akomodasi waktu khusus individu
+  status            String        // assigned, in_progress, completed, expired
+
+  // Relasi
+  attempts          ExamAttempt[]
+
+  @@unique([examId, candidateId])
+}
+
+// 11. Upaya Ujian (Exam Attempt)
+model ExamAttempt {
+  id             String            @id @default(uuid())
+  exam           Exam              @relation(fields: [examId], references: [id], onDelete: Cascade)
+  examId         String
+  candidate      User              @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidateId    String
+  assignment     ExamAssignment    @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  assignmentId   String
+  status         String            // in_progress, submitted, expired, graded
+  startedAt      DateTime          @default(now())
+  endsAt         DateTime          // Batas waktu absolut server (startedAt + duration + extraTime)
+  submittedAt    DateTime?
+  lastHeartbeatAt DateTime         @default(now())
+  score          Float             @default(0.0)
+  maxScore       Float             @default(0.0)
+  percentage     Float             @default(0.0)
+  passed         Boolean           @default(false)
+  autoSubmitted  Boolean           @default(false)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  // Relasi
+  questions      AttemptQuestion[]
+}
+
+// 12. Snapshot Soal Per Upaya Ujian (Immutable Attempt History)
+model AttemptQuestion {
+  id                     String      @id @default(uuid())
+  attempt                ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  attemptId              String
+  questionId             String
+  displayOrder           Int
+  questionTextSnapshot   String
+  explanationSnapshot    String?
+  optionASnapshot        String
+  optionBSnapshot        String
+  optionCSnapshot        String
+  optionDSnapshot        String
+  optionESnapshot        String?
+  correctOptionSnapshot  String      // Kunci jawaban asli saat ujian dibuat
+  selectedOption         String?     // Pilihan kandidat (A, B, C, D, E atau null)
+  isCorrect              Boolean     @default(false)
+  pointValue             Float       @default(1.0)
+  answeredAt             DateTime?
+
+  @@unique([attemptId, displayOrder])
+}
+
+// 13. Audit Log Ekspor Hasil
+model ResultExport {
+  id          String   @id @default(uuid())
+  requestedBy User     @relation(fields: [userId], references: [id])
+  userId      String
+  filtersJson String
+  filePath    String
+  createdAt   DateTime @default(now())
+}
+
+// 14. Log Aktivitas Administratif & Keamanan
+model AuditLog {
+  id           String   @id @default(uuid())
+  user         User?    @relation(fields: [userId], references: [id])
+  userId       String?
+  action       String   // e.g. login, export, change_schedule, exam_started, exam_submitted
+  entityType   String?
+  entityId     String?
+  ipAddress    String?
+  userAgent    String?
+  metadataJson String?
+  createdAt    DateTime @default(now())
+}

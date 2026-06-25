@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Default: Spectra Dark Theme (Obsidian Core) */
+  --color-canvas: #030712;
+  --color-surface-1: #0b0f19;
+  --color-surface-2: #111827;
+  --color-surface-3: #1f2937;
+  
+  --color-border-subtle: #1f2937;
+  --color-border-strong: #374151;
+  
+  --color-text-primary: #f9fafb;
+  --color-text-muted: #9ca3af;
+  --color-text-subtle: #6b7280;
+  
+  --background: var(--color-canvas);
+  --foreground: var(--color-text-primary);
+}
+
+[data-theme="light"], .light {
+  /* Spectra Light Theme (Clean Slate) */
+  --color-canvas: #f8fafc;
+  --color-surface-1: #ffffff;
+  --color-surface-2: #f1f5f9;
+  --color-surface-3: #e2e8f0;
+  
+  --color-border-subtle: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  
+  --color-text-primary: #0f172a;
+  --color-text-muted: #475569;
+  --color-text-subtle: #94a3b8;
+  
+  --background: var(--color-canvas);
+  --foreground: var(--color-text-primary);
+}
+
+body {
+  color: var(--color-text-primary);
+  background: var(--color-canvas);
+  min-height: 100vh;
+}
+
+/* Custom micro-animations and utilities */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s infinite ease-in-out;
+}
+
+/* Smooth custom scrollbars for dark/light modes */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-subtle);
+}
+
