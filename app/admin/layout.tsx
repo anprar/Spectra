@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import ThemeToggle from '@/components/ThemeToggle';
 import {
   LayoutDashboard,
   Users,
@@ -93,26 +94,29 @@ export default function AdminLayout({
     <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col md:flex-row">
       
       {/* Sidebar for Desktop */}
-      <aside className="hidden md:flex md:flex-col md:w-64 bg-[#0b0f19] border-r border-slate-800/80 flex-shrink-0">
+      <aside className="hidden md:flex md:flex-col md:w-64 h-screen sticky top-0 bg-[#0b0f19] border-r border-slate-800/80 flex-shrink-0">
         
         {/* Brand Header */}
-        <div className="h-16 flex items-center px-6 border-b border-slate-800/80">
-          <Link href="/admin" className="flex items-center space-x-2.5">
-            <img src="/spectra_logo.png" alt="SPECTRA Logo" className="w-7 h-7 object-contain" />
-            <span className="font-mono text-xl font-bold bg-gradient-to-r from-[#7c3aed] to-[#00d8f6] bg-clip-text text-transparent tracking-tighter">
+        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800/80">
+          <Link href="/admin" className="flex items-center space-x-2">
+            <img src="/spectra_logo.png" alt="SPECTRA Logo" className="w-6 h-6 object-contain" />
+            <span className="font-mono text-base font-bold bg-gradient-to-r from-[#7c3aed] to-[#00d8f6] bg-clip-text text-transparent tracking-tighter">
               SPECTRA
             </span>
-            <span className="text-[9px] bg-purple-500/10 text-purple-400 font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-purple-500/20 flex items-center space-x-0.5">
-              <Shield className="w-2.5 h-2.5" />
-              <span>Admin</span>
+            <span className="text-[8px] bg-purple-500/10 text-purple-400 font-mono font-bold uppercase tracking-wider px-1 py-0.5 rounded border border-purple-500/20 flex items-center space-x-0.5 ml-1">
+              <Shield className="w-2 h-2" />
+              <span>Adm</span>
             </span>
           </Link>
+          <ThemeToggle />
         </div>
 
         {/* Navigation Links */}
         <nav className="flex-1 px-4 py-6 space-y-1.5">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            const isActive = item.href === '/admin'
+              ? pathname === item.href
+              : pathname === item.href || pathname.startsWith(item.href + '/');
             const Icon = item.icon;
             return (
               <Link

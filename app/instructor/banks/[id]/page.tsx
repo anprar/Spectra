@@ -148,8 +148,8 @@ export default function BankDetailsPage({
     setManualLoading(true);
 
     // Validate
-    if (!manualQText.trim() || !manualQCategory.trim()) {
-      setManualError('Pertanyaan dan Kategori wajib diisi.');
+    if (!manualQText.trim()) {
+      setManualError('Pertanyaan wajib diisi.');
       setManualLoading(false);
       return;
     }
@@ -175,8 +175,8 @@ export default function BankDetailsPage({
         body: JSON.stringify({
           questionText: manualQText,
           explanationText: manualQExplanation,
-          category: manualQCategory,
-          difficulty: manualQDifficulty,
+          category: manualQCategory.trim() || 'Umum',
+          difficulty: manualQDifficulty || 'Medium',
           options: filledOptions.map((o) => ({
             optionKey: o.key,
             optionText: o.text,
@@ -616,11 +616,10 @@ export default function BankDetailsPage({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-slate-400 font-sans">
-                    Kategori Soal <span className="text-red-500">*</span>
+                    Kategori Soal <span className="text-[10px] text-slate-500 font-normal">(Opsional, default: Umum)</span>
                   </label>
                   <input
                     type="text"
-                    required
                     placeholder="e.g. Kode Etik, Logika, Pemrograman"
                     value={manualQCategory}
                     onChange={(e) => setManualQCategory(e.target.value)}
@@ -631,7 +630,7 @@ export default function BankDetailsPage({
 
                 <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-slate-400 font-sans">
-                    Tingkat Kesulitan <span className="text-red-500">*</span>
+                    Tingkat Kesulitan <span className="text-[10px] text-slate-500 font-normal">(Opsional, default: Medium)</span>
                   </label>
                   <select
                     value={manualQDifficulty}

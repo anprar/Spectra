@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import ThemeToggle from '@/components/ThemeToggle';
 import { 
   BookOpen, 
   Award, 
@@ -150,6 +151,7 @@ export default async function CandidateDashboardPage() {
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#00d8f6] flex items-center justify-center text-white text-xs font-bold font-sans">
             {session.fullName.charAt(0)}
           </div>
+          <ThemeToggle />
           <form action="/api/auth/logout" method="POST" className="flex items-center">
             <button
               type="submit"

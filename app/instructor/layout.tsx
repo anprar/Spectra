@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import ThemeToggle from '@/components/ThemeToggle';
 import { 
   LayoutDashboard, 
   Database, 
@@ -76,24 +77,27 @@ export default function InstructorLayout({
   return (
     <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col md:flex-row">
       {/* Sidebar for Desktop */}
-      <aside className="hidden md:flex md:flex-col md:w-64 bg-[#0b0f19] border-r border-slate-800/80 flex-shrink-0">
+      <aside className="hidden md:flex md:flex-col md:w-64 h-screen sticky top-0 bg-[#0b0f19] border-r border-slate-800/80 flex-shrink-0">
         {/* Brand Header */}
-        <div className="h-16 flex items-center px-6 border-b border-slate-800/80">
+        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800/80">
           <Link href="/instructor" className="flex items-center space-x-2">
-            <img src="/spectra_logo.png" alt="SPECTRA Logo" className="w-7 h-7 object-contain" />
-            <span className="font-mono text-xl font-bold bg-gradient-to-r from-[#7c3aed] to-[#00d8f6] bg-clip-text text-transparent tracking-tighter">
+            <img src="/spectra_logo.png" alt="SPECTRA Logo" className="w-6 h-6 object-contain" />
+            <span className="font-mono text-base font-bold bg-gradient-to-r from-[#7c3aed] to-[#00d8f6] bg-clip-text text-transparent tracking-tighter">
               SPECTRA
             </span>
-            <span className="text-[9px] bg-blue-500/10 text-blue-400 font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-blue-500/20">
-              Instructor
+            <span className="text-[8px] bg-blue-500/10 text-blue-400 font-mono font-bold uppercase tracking-wider px-1 py-0.5 rounded border border-blue-500/20 ml-1.5">
+              Inst
             </span>
           </Link>
+          <ThemeToggle />
         </div>
 
         {/* Navigation Links */}
         <nav className="flex-1 px-4 py-6 space-y-1.5">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            const isActive = item.href === '/instructor'
+              ? pathname === item.href
+              : pathname === item.href || pathname.startsWith(item.href + '/');
             const Icon = item.icon;
             return (
               <Link

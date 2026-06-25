@@ -21,7 +21,11 @@ export async function POST(request: NextRequest) {
     // Clear the cookie
     await deleteSessionCookie();
 
-    return NextResponse.json({ success: true, message: 'Berhasil keluar.' });
+    const acceptHeader = request.headers.get('accept') || '';
+    if (acceptHeader.includes('application/json')) {
+      return NextResponse.json({ success: true, message: 'Berhasil keluar.' });
+    }
+    return NextResponse.redirect(new URL('/login', request.url));
   } catch (error) {
     console.error('Logout error:', error);
     return NextResponse.json({ error: 'Terjadi kesalahan server saat memproses logout.' }, { status: 500 });

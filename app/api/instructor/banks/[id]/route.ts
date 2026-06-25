@@ -67,9 +67,12 @@ export async function POST(
 
     const { questionText, explanationText, category, difficulty, options } = await request.json();
 
-    if (!questionText || !category || !difficulty || !options || !Array.isArray(options) || options.length < 2) {
-      return NextResponse.json({ error: 'Data soal tidak lengkap. Minimal diisi pertanyaan, kategori, kesulitan, dan 2 opsi jawaban.' }, { status: 400 });
+    if (!questionText || !options || !Array.isArray(options) || options.length < 2) {
+      return NextResponse.json({ error: 'Data soal tidak lengkap. Minimal diisi pertanyaan dan 2 opsi jawaban.' }, { status: 400 });
     }
+
+    const categoryToSave = (category && category.trim()) ? category.trim() : 'Umum';
+    const difficultyToSave = (difficulty && difficulty.trim()) ? difficulty.trim() : 'Medium';
 
     // Check if exactly one option is marked correct
     const correctOptions = options.filter((o: any) => o.isCorrect);
@@ -82,8 +85,8 @@ export async function POST(
       const q = await tx.question.create({
         data: {
           bankId: id,
-          category,
-          difficulty,
+          category: categoryToSave,
+          difficulty: difficultyToSave,
           questionText,
           explanationText: explanationText || '',
           status: 'active',
@@ -113,7 +116,7 @@ export async function POST(
         action: 'create_question_manual',
         entityType: 'Question',
         entityId: newQuestion.id,
-        metadataJson: JSON.stringify({ category, difficulty }),
+        metadataJson: JSON.stringify({ category: categoryToSave, difficulty: difficultyToSave }),
       },
     });
 
