@@ -661,6 +661,7 @@ export default function InstructorExamsPage() {
                     disabled={submitLoading}
                     className="w-full px-3 py-2 bg-[#111827] border border-slate-800 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-slate-600 transition-colors"
                   />
+                  <p className="text-[9px] text-slate-500 leading-tight">Masa aktif timer pengerjaan ketika kandidat mulai ujian.</p>
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-slate-400 flex items-center gap-1">
@@ -727,6 +728,7 @@ export default function InstructorExamsPage() {
                     disabled={submitLoading}
                     className="w-full px-3 py-2 bg-[#111827] border border-slate-800 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-slate-600 transition-colors"
                   />
+                  <p className="text-[9px] text-slate-500 leading-tight">Batas awal gerbang server dibuka untuk mulai ujian.</p>
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-slate-400 flex items-center gap-1">
@@ -742,6 +744,7 @@ export default function InstructorExamsPage() {
                     disabled={submitLoading}
                     className="w-full px-3 py-2 bg-[#111827] border border-slate-800 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-slate-600 transition-colors"
                   />
+                  <p className="text-[9px] text-slate-500 leading-tight">Batas akhir gerbang server ditutup (ujian tidak bisa dimulai lagi).</p>
                 </div>
               </div>
 

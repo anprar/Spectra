@@ -14,7 +14,10 @@ import {
   Menu, 
   X,
   User,
-  ShieldAlert
+  ShieldAlert,
+  Users,
+  UserCheck,
+  Shield
 } from 'lucide-react';
 
 interface UserSession {
@@ -67,12 +70,23 @@ export default function InstructorLayout({
     }
   };
 
-  const navItems = [
-    { name: 'Dashboard', href: '/instructor', icon: LayoutDashboard },
-    { name: 'Bank Soal', href: '/instructor/banks', icon: Database },
-    { name: 'Modul Training', href: '/instructor/modules', icon: BookOpen },
-    { name: 'Jadwal & Ujian', href: '/instructor/exams', icon: Award },
-  ];
+  const isAdmin = session?.role === 'admin';
+
+  const navItems = isAdmin
+    ? [
+        { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+        { name: 'Kelola Pengguna', href: '/admin/users', icon: Users },
+        { name: 'Kelola Bank Soal', href: '/instructor/banks', icon: Database },
+        { name: 'Kelola Modul Belajar', href: '/instructor/modules', icon: BookOpen },
+        { name: 'Kelola Jadwal & Ujian', href: '/instructor/exams', icon: Award },
+        { name: 'Hasil Ujian', href: '/admin/results', icon: UserCheck },
+      ]
+    : [
+        { name: 'Dashboard', href: '/instructor', icon: LayoutDashboard },
+        { name: 'Bank Soal', href: '/instructor/banks', icon: Database },
+        { name: 'Modul Training', href: '/instructor/modules', icon: BookOpen },
+        { name: 'Jadwal & Ujian', href: '/instructor/exams', icon: Award },
+      ];
 
   return (
     <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col md:flex-row">
@@ -80,13 +94,18 @@ export default function InstructorLayout({
       <aside className="hidden md:flex md:flex-col md:w-64 h-screen sticky top-0 bg-[#0b0f19] border-r border-slate-800/80 flex-shrink-0">
         {/* Brand Header */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800/80">
-          <Link href="/instructor" className="flex items-center space-x-2">
+          <Link href={isAdmin ? '/admin' : '/instructor'} className="flex items-center space-x-2">
             <img src="/spectra_logo.png" alt="SPECTRA Logo" className="w-6 h-6 object-contain" />
             <span className="font-mono text-base font-bold bg-gradient-to-r from-[#7c3aed] to-[#00d8f6] bg-clip-text text-transparent tracking-tighter">
               SPECTRA
             </span>
-            <span className="text-[8px] bg-blue-500/10 text-blue-400 font-mono font-bold uppercase tracking-wider px-1 py-0.5 rounded border border-blue-500/20 ml-1.5">
-              Inst
+            <span className={`text-[8px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ml-1.5 flex items-center space-x-0.5 ${
+              isAdmin 
+                ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
+                : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+            }`}>
+              {isAdmin && <Shield className="w-2 h-2" />}
+              <span>{isAdmin ? 'Adm' : 'Inst'}</span>
             </span>
           </Link>
           <ThemeToggle />
@@ -150,13 +169,17 @@ export default function InstructorLayout({
 
       {/* Mobile Menu Header */}
       <header className="md:hidden h-16 bg-[#0b0f19] border-b border-slate-800/80 px-4 flex items-center justify-between z-30">
-        <Link href="/instructor" className="flex items-center space-x-2">
+        <Link href={isAdmin ? '/admin' : '/instructor'} className="flex items-center space-x-2">
           <img src="/spectra_logo.png" alt="SPECTRA Logo" className="w-6 h-6 object-contain" />
           <span className="font-mono text-lg font-bold bg-gradient-to-r from-[#7c3aed] to-[#00d8f6] bg-clip-text text-transparent tracking-tighter">
             SPECTRA
           </span>
-          <span className="text-[8px] bg-blue-500/10 text-blue-400 font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-blue-500/20">
-            Inst
+          <span className={`text-[8px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${
+            isAdmin 
+              ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
+              : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+          }`}>
+            {isAdmin ? 'Adm' : 'Inst'}
           </span>
         </Link>
         <button

@@ -23,6 +23,8 @@ interface ExamMetadata {
   durationMinutes: number;
   questionCount: number;
   passScore: number;
+  availableFrom: string;
+  availableUntil: string;
 }
 
 export default function ExamReadinessPage({
@@ -38,6 +40,30 @@ export default function ExamReadinessPage({
   const [accepted, setAccepted] = useState(false);
   const [startLoading, setStartLoading] = useState(false);
   const [error, setError] = useState('');
+  const [scheduleState, setScheduleState] = useState<'upcoming' | 'active' | 'expired'>('active');
+
+  // Client-side dynamic schedule state validator
+  useEffect(() => {
+    if (!exam) return;
+
+    const checkSchedule = () => {
+      const now = new Date();
+      const from = new Date(exam.availableFrom);
+      const until = new Date(exam.availableUntil);
+
+      if (now < from) {
+        setScheduleState('upcoming');
+      } else if (now > until) {
+        setScheduleState('expired');
+      } else {
+        setScheduleState('active');
+      }
+    };
+
+    checkSchedule();
+    const interval = setInterval(checkSchedule, 2000);
+    return () => clearInterval(interval);
+  }, [exam]);
 
   useEffect(() => {
     const fetchExamMetadata = async () => {
@@ -168,7 +194,7 @@ export default function ExamReadinessPage({
           <div className="space-y-3.5 text-xs text-slate-300 leading-relaxed pl-2">
             <div className="flex items-start space-x-3">
               <span className="w-5 h-5 rounded-full bg-slate-900 border border-slate-800 text-slate-500 font-mono text-[10px] flex items-center justify-center flex-shrink-0">1</span>
-              <p><strong className="text-white">Timer Tidak Dapat Dipause:</strong> Begitu tombol "Mulai" ditekan, timer berjalan absolut di server. Menutup browser, menyegarkan halaman, atau mati listrik **tidak akan menghentikan waktu**.</p>
+              <p><strong className="text-white">Timer Tidak Dapat Dipause:</strong> Begitu tombol "Mulai" ditekan, timer berjalan absolut di server. Menutup browser, menyegarkan halaman, atau mati listrik <span className="font-semibold text-[#00d8f6]">tidak akan menghentikan waktu</span>.</p>
             </div>
             <div className="flex items-start space-x-3">
               <span className="w-5 h-5 rounded-full bg-slate-900 border border-slate-800 text-slate-500 font-mono text-[10px] flex items-center justify-center flex-shrink-0">2</span>
@@ -180,9 +206,22 @@ export default function ExamReadinessPage({
             </div>
             <div className="flex items-start space-x-3">
               <span className="w-5 h-5 rounded-full bg-slate-900 border border-slate-800 text-slate-500 font-mono text-[10px] flex items-center justify-center flex-shrink-0">4</span>
-              <p><strong className="text-white">Auto-Submit Waktu Habis:</strong> Ketika waktu pengerjaan server mencapai `00:00`, sistem secara otomatis mengunci seluruh form jawaban dan mengirimkan pengerjaan Anda apa adanya.</p>
+              <p><strong className="text-white">Auto-Submit Waktu Habis:</strong> Ketika waktu pengerjaan server mencapai <code className="bg-slate-900 px-1.5 py-0.5 rounded text-[#00d8f6] font-mono text-[11px]">00:00</code>, sistem secara otomatis mengunci seluruh form jawaban dan mengirimkan pengerjaan Anda apa adanya.</p>
             </div>
           </div>
+
+          {/* Schedule warning messages */}
+          {scheduleState === 'upcoming' && (
+            <div className="p-3.5 bg-amber-950/40 border border-amber-500/20 rounded-lg text-amber-300 text-xs font-sans">
+              <strong>Ujian Belum Dibuka:</strong> Sesi penjadwalan ujian belum dimulai. Ujian baru akan dibuka pada: <span className="font-mono font-bold text-white">{new Date(exam.availableFrom).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>.
+            </div>
+          )}
+
+          {scheduleState === 'expired' && (
+            <div className="p-3.5 bg-red-950/40 border border-red-500/20 rounded-lg text-red-300 text-xs font-sans">
+              <strong>Ujian Sudah Selesai:</strong> Batas akhir jadwal akses ujian telah terlewati (Selesai pada: <span className="font-mono font-bold text-white">{new Date(exam.availableUntil).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>). Anda tidak dapat lagi memulai pengerjaan.
+            </div>
+          )}
 
           {error && (
             <div className="p-3 bg-red-950/40 border border-red-500/30 rounded-lg text-red-300 text-xs animate-pulse-subtle">
@@ -192,24 +231,28 @@ export default function ExamReadinessPage({
 
           {/* Acceptance and Button */}
           <div className="border-t border-slate-800/60 pt-6 space-y-4">
-            <label className="flex items-start space-x-3 cursor-pointer text-xs text-slate-300 leading-normal select-none">
+            <label className={`flex items-start space-x-3 text-xs leading-normal select-none ${scheduleState === 'active' ? 'cursor-pointer text-slate-300' : 'cursor-not-allowed text-slate-600'}`}>
               <input
                 type="checkbox"
                 checked={accepted}
                 onChange={(e) => setAccepted(e.target.checked)}
-                disabled={startLoading}
-                className="mt-0.5 rounded border-slate-800 bg-slate-900 text-pink-500 focus:ring-pink-500/50"
+                disabled={startLoading || scheduleState !== 'active'}
+                className="mt-0.5 rounded border-slate-800 bg-slate-900 text-pink-500 focus:ring-pink-500/50 disabled:opacity-30"
               />
               <span>Saya menyatakan paham dengan tata tertib ujian di atas dan menyatakan siap menempuh ujian secara jujur dan objektif.</span>
             </label>
 
             <button
               onClick={handleStartExam}
-              disabled={!accepted || startLoading}
+              disabled={!accepted || startLoading || scheduleState !== 'active'}
               className="w-full relative group overflow-hidden rounded-lg p-[1px] focus:outline-none disabled:opacity-40"
             >
               {/* Talent spectrum gradient border */}
-              <span className="absolute inset-0 bg-gradient-to-r from-[#7c3aed] to-[#00d8f6] rounded-lg opacity-85 group-hover:opacity-100 transition-opacity duration-300"></span>
+              {scheduleState === 'active' ? (
+                <span className="absolute inset-0 bg-gradient-to-r from-[#7c3aed] to-[#00d8f6] rounded-lg opacity-85 group-hover:opacity-100 transition-opacity duration-300"></span>
+              ) : (
+                <span className="absolute inset-0 bg-slate-800 rounded-lg"></span>
+              )}
               
               <div className="relative px-6 py-3 bg-[#0b0f19] rounded-[7px] transition-colors duration-300 group-hover:bg-transparent flex items-center justify-center space-x-2">
                 {startLoading ? (
@@ -217,6 +260,20 @@ export default function ExamReadinessPage({
                     <Loader2 className="w-4 h-4 text-white animate-spin" />
                     <span className="font-sans text-sm font-semibold text-white tracking-wide">
                       Mempersiapkan Lembar Ujian...
+                    </span>
+                  </>
+                ) : scheduleState === 'upcoming' ? (
+                  <>
+                    <Clock className="w-3.5 h-3.5 text-slate-500" />
+                    <span className="font-sans text-sm font-semibold text-slate-500 tracking-wide">
+                      Menunggu Jadwal Dibuka
+                    </span>
+                  </>
+                ) : scheduleState === 'expired' ? (
+                  <>
+                    <AlertOctagon className="w-3.5 h-3.5 text-slate-500" />
+                    <span className="font-sans text-sm font-semibold text-slate-500 tracking-wide">
+                      Jadwal Akses Berakhir
                     </span>
                   </>
                 ) : (

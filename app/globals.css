@@ -204,4 +204,30 @@ body {
   --tw-prose-bold: var(--color-text-primary) !important;
 }
 
+/* Light Mode Hover State Contrast Recovery */
+.light .hover\:bg-slate-900:hover {
+  background-color: var(--color-surface-2) !important;
+}
+.light .hover\:text-white:hover {
+  color: var(--color-text-primary) !important;
+}
+.light .hover\:bg-slate-850:hover {
+  background-color: var(--color-surface-3) !important;
+}
+.light .hover\:bg-slate-800:hover {
+  background-color: var(--color-surface-3) !important;
+}
+.light .hover\:text-slate-300:hover {
+  color: var(--color-text-primary) !important;
+}
+.light .hover\:text-slate-450:hover {
+  color: var(--color-text-primary) !important;
+}
+.light .hover\:bg-red-950\/20:hover {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+.light .hover\:bg-amber-950\/30:hover {
+  background-color: rgba(217, 119, 6, 0.08) !important;
+}
+
 
