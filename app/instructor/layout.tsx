@@ -41,7 +41,6 @@ export default function InstructorLayout({
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const response = await fetch('/api/auth/login');
         const profileRes = await fetch('/api/auth/me');
         if (profileRes.ok) {
           const data = await profileRes.json();
@@ -61,8 +60,8 @@ export default function InstructorLayout({
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { 
-        method: 'POST',
-        headers: { 'Accept': 'application/json' }
+         method: 'POST',
+         headers: { 'Accept': 'application/json' }
       });
       window.location.href = '/login';
     } catch (e) {
@@ -86,6 +85,7 @@ export default function InstructorLayout({
         { name: 'Bank Soal', href: '/instructor/banks', icon: Database },
         { name: 'Modul Training', href: '/instructor/modules', icon: BookOpen },
         { name: 'Jadwal & Ujian', href: '/instructor/exams', icon: Award },
+        { name: 'Hasil Ujian', href: '/admin/results', icon: UserCheck },
       ];
 
   if (loading) {

@@ -54,6 +54,7 @@ export async function GET(
         id: true,
         questionId: true,
         displayOrder: true,
+        questionType: true,
         questionTextSnapshot: true,
         optionASnapshot: true,
         optionBSnapshot: true,
@@ -61,6 +62,7 @@ export async function GET(
         optionDSnapshot: true,
         optionESnapshot: true,
         selectedOption: true,
+        essayAnswer: true,
         answeredAt: true,
       },
     });
@@ -94,10 +96,16 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
     }
 
-    const { questionId, selectedOption } = await request.json();
+    const { questionId, selectedOption, essayAnswer } = await request.json();
 
-    if (!questionId || !selectedOption || !['A', 'B', 'C', 'D', 'E'].includes(selectedOption)) {
+    if (!questionId) {
       return NextResponse.json({ error: 'Format data penyimpanan jawaban tidak valid.' }, { status: 400 });
+    }
+
+    if (selectedOption !== undefined && selectedOption !== null) {
+      if (!['A', 'B', 'C', 'D', 'E'].includes(selectedOption)) {
+        return NextResponse.json({ error: 'Format pilihan jawaban tidak valid.' }, { status: 400 });
+      }
     }
 
     // Fetch attempt to verify timer and candidate ownership
@@ -128,16 +136,23 @@ export async function POST(
       return NextResponse.json({ error: 'Waktu habis. Jawaban tidak dapat disimpan.', expired: true }, { status: 400 });
     }
 
-    // Save candidate's selection
+    // Save candidate's selection / essay answer
+    const updateData: any = {
+      answeredAt: new Date(),
+    };
+    if (selectedOption !== undefined) {
+      updateData.selectedOption = selectedOption;
+    }
+    if (essayAnswer !== undefined) {
+      updateData.essayAnswer = essayAnswer;
+    }
+
     const updatedQuestion = await db.attemptQuestion.updateMany({
       where: {
         attemptId: attemptId,
         questionId: questionId,
       },
-      data: {
-        selectedOption: selectedOption,
-        answeredAt: new Date(),
-      },
+      data: updateData,
     });
 
     // Send heartbeat update to database

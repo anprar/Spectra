@@ -144,3 +144,53 @@ export async function DELETE(
     return NextResponse.json({ error: error.message || 'Terjadi kesalahan server.' }, { status: 500 });
   }
 }
+
+// 3. PATCH: Toggle user block/unblock status
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden. Akses ditolak.' }, { status: 403 });
+    }
+
+    const { id } = await params;
+    const body = await request.json().catch(() => ({}));
+    const { isActive } = body;
+
+    if (isActive === undefined) {
+      return NextResponse.json({ error: 'Status keaktifan (isActive) wajib ditentukan.' }, { status: 400 });
+    }
+
+    const targetUser = await db.user.findUnique({ where: { id } });
+    if (!targetUser) {
+      return NextResponse.json({ error: 'Pengguna tidak ditemukan.' }, { status: 404 });
+    }
+
+    if (targetUser.id === session.userId && isActive === false) {
+      return NextResponse.json({ error: 'Anda tidak dapat menonaktifkan akun admin Anda sendiri.' }, { status: 400 });
+    }
+
+    const updatedUser = await db.user.update({
+      where: { id },
+      data: { isActive: !!isActive },
+      select: { id: true, email: true, fullName: true, role: true, isActive: true }
+    });
+
+    await db.auditLog.create({
+      data: {
+        userId: session.userId,
+        action: isActive ? 'unblock_user' : 'block_user',
+        entityType: 'User',
+        entityId: id,
+        metadataJson: JSON.stringify({ email: targetUser.email, role: targetUser.role })
+      }
+    });
+
+    return NextResponse.json({ user: updatedUser });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Terjadi kesalahan server.' }, { status: 500 });
+  }
+}

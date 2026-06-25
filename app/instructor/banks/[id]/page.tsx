@@ -31,6 +31,7 @@ interface Question {
   category: string;
   difficulty: string;
   questionText: string;
+  questionType?: string;
   explanationText: string | null;
   options: Option[];
 }
@@ -67,6 +68,7 @@ export default function BankDetailsPage({
   const [manualQCategory, setManualQCategory] = useState('');
   const [manualQDifficulty, setManualQDifficulty] = useState('Medium');
   const [manualQExplanation, setManualQExplanation] = useState('');
+  const [manualQType, setManualQType] = useState<'multiple_choice' | 'essay'>('multiple_choice');
   const [manualOptions, setManualOptions] = useState([
     { key: 'A', text: '', isCorrect: true },
     { key: 'B', text: '', isCorrect: false },
@@ -155,17 +157,19 @@ export default function BankDetailsPage({
     }
 
     const filledOptions = manualOptions.filter((o) => o.text.trim() !== '');
-    if (filledOptions.length < 2) {
-      setManualError('Harap isi minimal 2 opsi jawaban.');
-      setManualLoading(false);
-      return;
-    }
+    if (manualQType === 'multiple_choice') {
+      if (filledOptions.length < 2) {
+        setManualError('Harap isi minimal 2 opsi jawaban.');
+        setManualLoading(false);
+        return;
+      }
 
-    const hasCorrect = filledOptions.some((o) => o.isCorrect);
-    if (!hasCorrect) {
-      setManualError('Harap pilih salah satu opsi sebagai kunci jawaban yang benar.');
-      setManualLoading(false);
-      return;
+      const hasCorrect = filledOptions.some((o) => o.isCorrect);
+      if (!hasCorrect) {
+        setManualError('Harap pilih salah satu opsi sebagai kunci jawaban yang benar.');
+        setManualLoading(false);
+        return;
+      }
     }
 
     try {
@@ -177,7 +181,8 @@ export default function BankDetailsPage({
           explanationText: manualQExplanation,
           category: manualQCategory.trim() || 'Umum',
           difficulty: manualQDifficulty || 'Medium',
-          options: filledOptions.map((o) => ({
+          questionType: manualQType,
+          options: manualQType === 'essay' ? [] : filledOptions.map((o) => ({
             optionKey: o.key,
             optionText: o.text,
             isCorrect: o.isCorrect,
@@ -196,6 +201,7 @@ export default function BankDetailsPage({
       setManualQExplanation('');
       setManualQCategory('');
       setManualQDifficulty('Medium');
+      setManualQType('multiple_choice');
       setManualOptions([
         { key: 'A', text: '', isCorrect: true },
         { key: 'B', text: '', isCorrect: false },
@@ -369,6 +375,13 @@ export default function BankDetailsPage({
                           {q.category}
                         </span>
                         <span className={`font-mono text-[9px] font-bold px-2 py-0.5 rounded border ${
+                          q.questionType === 'essay' 
+                            ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                            : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                        }`}>
+                          {q.questionType === 'essay' ? 'ESSAY' : 'PILGANDA'}
+                        </span>
+                        <span className={`font-mono text-[9px] font-bold px-2 py-0.5 rounded border ${
                           q.difficulty === 'Easy' 
                             ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                             : q.difficulty === 'Medium'
@@ -393,27 +406,35 @@ export default function BankDetailsPage({
                     </h4>
 
                     {/* Options list */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-2">
-                      {q.options.map((opt) => (
-                        <div 
-                          key={opt.id}
-                          className={`px-4 py-2.5 rounded-lg border text-xs font-sans flex items-start space-x-2 transition-colors ${
-                            opt.isCorrect 
-                              ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/40 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-300 font-medium'
-                              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200'
-                          }`}
-                        >
-                          <span className={`font-mono font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            opt.isCorrect 
-                              ? 'bg-emerald-500 text-white font-bold' 
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                          }`}>
-                            {opt.optionKey}
-                          </span>
-                          <span className="leading-relaxed">{opt.optionText}</span>
-                        </div>
-                      ))}
-                    </div>
+                    {q.questionType !== 'essay' ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-2">
+                        {q.options.map((opt) => (
+                          <div 
+                            key={opt.id}
+                            className={`px-4 py-2.5 rounded-lg border text-xs font-sans flex items-start space-x-2 transition-colors ${
+                              opt.isCorrect 
+                                ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/40 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-300 font-medium'
+                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200'
+                            }`}
+                          >
+                            <span className={`font-mono font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+                              opt.isCorrect 
+                                ? 'bg-emerald-500 text-white font-bold' 
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                            }`}>
+                              {opt.optionKey}
+                            </span>
+                            <span className="leading-relaxed">{opt.optionText}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="pl-2">
+                        <span className="inline-flex items-center space-x-1.5 text-[10px] font-mono font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2.5 py-1 rounded">
+                          <span>SOAL ESSAY (Isian Jawaban Mandiri)</span>
+                        </span>
+                      </div>
+                    )}
 
                     {/* Explanation if exists */}
                     {q.explanationText && (
@@ -613,6 +634,22 @@ export default function BankDetailsPage({
                 />
               </div>
 
+              {/* Question Type selection */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-slate-400 font-sans">
+                  Tipe Soal <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={manualQType}
+                  onChange={(e) => setManualQType(e.target.value as any)}
+                  disabled={manualLoading}
+                  className="w-full px-3 py-2 bg-[#111827] border border-slate-800 rounded-lg text-white font-sans text-xs focus:outline-none focus:border-slate-600 transition-colors"
+                >
+                  <option value="multiple_choice">Pilihan Ganda (Pilihan A-E)</option>
+                  <option value="essay">Essay / Isian Mandiri</option>
+                </select>
+              </div>
+
               {/* Category & Difficulty */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
@@ -647,53 +684,57 @@ export default function BankDetailsPage({
               </div>
 
               {/* Options Inputs */}
-              <div className="space-y-4">
-                <label className="block text-xs font-semibold text-slate-400 font-sans">
-                  Opsi Jawaban & Kunci Jawaban <span className="text-red-500">*</span>
-                </label>
-                
-                <div className="space-y-3 pl-2">
-                  {manualOptions.map((opt) => (
-                    <div key={opt.key} className="flex items-center space-x-3">
-                      {/* Correct key radio button */}
-                      <label 
-                        className="flex-shrink-0 cursor-pointer"
-                        title="Tandai sebagai opsi yang benar"
-                      >
-                        <input
-                          type="radio"
-                          name="manual-correct-option"
-                          checked={opt.isCorrect}
-                          onChange={() => handleOptionCorrectChange(opt.key)}
-                          disabled={manualLoading}
-                          className="hidden"
-                        />
-                        <span className={`font-mono text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center border transition-colors ${
-                          opt.isCorrect
-                            ? 'bg-emerald-500 border-emerald-500 text-white font-bold'
-                            : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'
-                        }`}>
-                          {opt.key}
-                        </span>
-                      </label>
-                      
-                      {/* Option Text Input */}
-                      <input
-                        type="text"
-                        placeholder={`Teks pilihan jawaban ${opt.key} ${opt.key === 'E' ? '(Opsional)' : '(Wajib)'}`}
-                        required={opt.key !== 'E'}
-                        value={opt.text}
-                        onChange={(e) => handleOptionChange(opt.key, e.target.value)}
-                        disabled={manualLoading}
-                        className="flex-1 px-3.5 py-2 bg-[#111827] border border-slate-800 rounded-lg text-white font-sans text-xs focus:outline-none focus:border-slate-600 transition-colors placeholder-slate-600"
-                      />
+              {manualQType === 'multiple_choice' && (
+                <>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-slate-400 font-sans">
+                      Opsi Jawaban & Kunci Jawaban <span className="text-red-500">*</span>
+                    </label>
+                    
+                    <div className="space-y-3 pl-2">
+                      {manualOptions.map((opt) => (
+                        <div key={opt.key} className="flex items-center space-x-3">
+                          {/* Correct key radio button */}
+                          <label 
+                            className="flex-shrink-0 cursor-pointer"
+                            title="Tandai sebagai opsi yang benar"
+                          >
+                            <input
+                              type="radio"
+                              name="manual-correct-option"
+                              checked={opt.isCorrect}
+                              onChange={() => handleOptionCorrectChange(opt.key)}
+                              disabled={manualLoading}
+                              className="hidden"
+                            />
+                            <span className={`font-mono text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center border transition-colors ${
+                              opt.isCorrect
+                                ? 'bg-emerald-500 border-emerald-500 text-white font-bold'
+                                : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'
+                            }`}>
+                              {opt.key}
+                            </span>
+                          </label>
+                          
+                          {/* Option Text Input */}
+                          <input
+                            type="text"
+                            placeholder={`Teks pilihan jawaban ${opt.key} ${opt.key === 'E' ? '(Opsional)' : '(Wajib)'}`}
+                            required={opt.key !== 'E'}
+                            value={opt.text}
+                            onChange={(e) => handleOptionChange(opt.key, e.target.value)}
+                            disabled={manualLoading}
+                            className="flex-1 px-3.5 py-2 bg-[#111827] border border-slate-800 rounded-lg text-white font-sans text-xs focus:outline-none focus:border-slate-600 transition-colors placeholder-slate-600"
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                <p className="text-[10px] text-slate-500 italic pl-12 font-sans">
-                  * Klik lingkaran huruf (A-E) di sebelah kiri untuk menentukan kunci jawaban yang benar.
-                </p>
-              </div>
+                    <p className="text-[10px] text-slate-500 italic pl-12 font-sans">
+                      * Klik lingkaran huruf (A-E) di sebelah kiri untuk menentukan kunci jawaban yang benar.
+                    </p>
+                  </div>
+                </>
+              )}
 
               {/* Explanation */}
               <div className="space-y-1.5">

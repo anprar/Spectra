@@ -177,33 +177,36 @@ export async function POST(
       // Create snapshot questions
       for (let index = 0; index < finalQuestions.length; index++) {
         const q = finalQuestions[index];
+        const isEssay = q.questionType === 'essay';
         
-        // Shuffle options if exam config demands it
+        // Shuffle options if exam config demands it (only for MC)
         let opts = [...q.options];
-        if (exam.shuffleOptions) {
+        if (exam.shuffleOptions && !isEssay) {
           opts = opts.sort(() => 0.5 - Math.random());
         }
 
-        // Map options to snapshots (safely fallback if less than 5)
-        const optA = opts[0]?.optionText || '';
-        const optB = opts[1]?.optionText || '';
-        const optC = opts[2]?.optionText || '';
-        const optD = opts[3]?.optionText || '';
-        const optE = opts[4]?.optionText || null;
+        // Map options to snapshots (safely fallback if less than 5, or empty for essays)
+        const optA = isEssay ? "" : (opts[0]?.optionText || '');
+        const optB = isEssay ? "" : (opts[1]?.optionText || '');
+        const optC = isEssay ? "" : (opts[2]?.optionText || '');
+        const optD = isEssay ? "" : (opts[3]?.optionText || '');
+        const optE = isEssay ? null : (opts[4]?.optionText || null);
 
         // Find the correct original option key (A, B, C, D, E) and map to the new shuffled key
-        const correctOriginalOption = q.options.find((o: any) => o.isCorrect);
-        const correctOriginalKey = correctOriginalOption ? correctOriginalOption.optionKey : 'A';
-        
-        // The correct key in the snapshot is the shuffled option index that represents the correct answer
-        const correctShuffledIndex = opts.findIndex((o: any) => o.optionKey === correctOriginalKey);
-        const correctSnapshotKey = ['A', 'B', 'C', 'D', 'E'][correctShuffledIndex >= 0 ? correctShuffledIndex : 0];
+        let correctSnapshotKey = "";
+        if (!isEssay) {
+          const correctOriginalOption = q.options.find((o: any) => o.isCorrect);
+          const correctOriginalKey = correctOriginalOption ? correctOriginalOption.optionKey : 'A';
+          const correctShuffledIndex = opts.findIndex((o: any) => o.optionKey === correctOriginalKey);
+          correctSnapshotKey = ['A', 'B', 'C', 'D', 'E'][correctShuffledIndex >= 0 ? correctShuffledIndex : 0];
+        }
 
         await tx.attemptQuestion.create({
           data: {
             attemptId: att.id,
             questionId: q.id,
             displayOrder: index + 1,
+            questionType: q.questionType || 'multiple_choice',
             questionTextSnapshot: q.questionText,
             explanationSnapshot: q.explanationText,
             optionASnapshot: optA,

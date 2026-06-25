@@ -39,12 +39,14 @@ export async function POST(
 
       // 2. Perform Automatic Grading
       let score = 0;
-      const maxScore = questions.length; // 1 point per question
+      const maxScore = questions.reduce((sum, q) => sum + q.pointValue, 0); // sum of pointValues (usually questions.length)
+      const hasEssay = questions.some((q) => q.questionType === 'essay');
       
       for (const q of questions) {
-        const isCorrect = q.selectedOption !== null && q.selectedOption === q.correctOptionSnapshot;
+        const isEssay = q.questionType === 'essay';
+        const isCorrect = !isEssay && q.selectedOption !== null && q.selectedOption === q.correctOptionSnapshot;
         if (isCorrect) {
-          score += 1;
+          score += q.pointValue;
         }
 
         // Update each snapshot question with grading results
@@ -63,7 +65,7 @@ export async function POST(
       const updatedAttempt = await tx.examAttempt.update({
         where: { id: attemptId },
         data: {
-          status: 'graded',
+          status: hasEssay ? 'submitted' : 'graded',
           score: score,
           maxScore: maxScore,
           percentage: percentage,

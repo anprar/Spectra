@@ -166,7 +166,7 @@ export default function ResultsOverviewPage() {
                 </tr>
               ) : (
                 attempts.map((attempt) => {
-                  const isSubmitted = attempt.status === 'submitted';
+                  const isSubmitted = attempt.status === 'submitted' || attempt.status === 'graded';
                   return (
                     <tr key={attempt.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors">
                       <td className="py-3.5 px-4">
@@ -193,10 +193,15 @@ export default function ResultsOverviewPage() {
                             <XCircle className="w-3 h-3 text-orange-500" />
                             <span>TIDAK MENGIKUTI</span>
                           </span>
-                        ) : !isSubmitted ? (
+                        ) : attempt.status === 'in_progress' ? (
                           <span className="inline-flex items-center space-x-1 text-[10px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
                             <Clock className="w-3 h-3" />
                             <span>Sedang Berjalan</span>
+                          </span>
+                        ) : attempt.status === 'submitted' ? (
+                          <span className="inline-flex items-center space-x-1 text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded" title="Jawaban pilihan ganda dinilai otomatis, menunggu penilaian manual untuk essay">
+                            <Clock className="w-3 h-3 text-indigo-500" />
+                            <span>Koreksi Essay</span>
                           </span>
                         ) : attempt.passed ? (
                           <span className="inline-flex items-center space-x-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">

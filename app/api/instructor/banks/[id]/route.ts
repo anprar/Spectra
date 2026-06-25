@@ -65,20 +65,27 @@ export async function POST(
       return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 });
     }
 
-    const { questionText, explanationText, category, difficulty, options } = await request.json();
+    const { questionText, explanationText, category, difficulty, questionType, options } = await request.json();
 
-    if (!questionText || !options || !Array.isArray(options) || options.length < 2) {
-      return NextResponse.json({ error: 'Data soal tidak lengkap. Minimal diisi pertanyaan dan 2 opsi jawaban.' }, { status: 400 });
+    if (!questionText) {
+      return NextResponse.json({ error: 'Pertanyaan wajib diisi.' }, { status: 400 });
+    }
+
+    const typeToSave = questionType === 'essay' ? 'essay' : 'multiple_choice';
+
+    if (typeToSave === 'multiple_choice') {
+      if (!options || !Array.isArray(options) || options.length < 2) {
+        return NextResponse.json({ error: 'Data soal tidak lengkap. Minimal diisi pertanyaan dan 2 opsi jawaban.' }, { status: 400 });
+      }
+      
+      const correctOptions = options.filter((o: any) => o.isCorrect);
+      if (correctOptions.length !== 1) {
+        return NextResponse.json({ error: 'Harus ada tepat satu kunci jawaban yang benar.' }, { status: 400 });
+      }
     }
 
     const categoryToSave = (category && category.trim()) ? category.trim() : 'Umum';
     const difficultyToSave = (difficulty && difficulty.trim()) ? difficulty.trim() : 'Medium';
-
-    // Check if exactly one option is marked correct
-    const correctOptions = options.filter((o: any) => o.isCorrect);
-    if (correctOptions.length !== 1) {
-      return NextResponse.json({ error: 'Harus ada tepat satu kunci jawaban yang benar.' }, { status: 400 });
-    }
 
     // Create question & options inside transaction
     const newQuestion = await db.$transaction(async (tx) => {
@@ -88,22 +95,25 @@ export async function POST(
           category: categoryToSave,
           difficulty: difficultyToSave,
           questionText,
+          questionType: typeToSave,
           explanationText: explanationText || '',
           status: 'active',
         },
       });
 
-      for (let i = 0; i < options.length; i++) {
-        const opt = options[i];
-        await tx.questionOption.create({
-          data: {
-            questionId: q.id,
-            optionKey: opt.optionKey.toUpperCase(),
-            optionText: opt.optionText,
-            isCorrect: opt.isCorrect,
-            sortOrder: i + 1,
-          },
-        });
+      if (typeToSave === 'multiple_choice' && options) {
+        for (let i = 0; i < options.length; i++) {
+          const opt = options[i];
+          await tx.questionOption.create({
+            data: {
+              questionId: q.id,
+              optionKey: opt.optionKey.toUpperCase(),
+              optionText: opt.optionText,
+              isCorrect: opt.isCorrect,
+              sortOrder: i + 1,
+            },
+          });
+        }
       }
 
       return q;

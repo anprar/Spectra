@@ -26,8 +26,8 @@ export async function GET(request: Request) {
               { exam: { title: { contains: query } } }
             ]
           } : {},
-          passedFilter === 'true' ? { passed: true, status: 'submitted' } : {},
-          passedFilter === 'false' ? { passed: false, status: 'submitted' } : {}
+          passedFilter === 'true' ? { passed: true, status: { in: ['submitted', 'graded'] } } : {},
+          passedFilter === 'false' ? { passed: false, status: { in: ['submitted', 'graded', 'missed'] } } : {}
         ]
       },
       include: {

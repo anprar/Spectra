@@ -129,7 +129,11 @@ export async function middleware(request: NextRequest) {
 
   // Enforce role-based access
   if (pathname.startsWith('/admin')) {
-    if (session.role !== 'admin') {
+    if (pathname.startsWith('/admin/results')) {
+      if (session.role !== 'admin' && session.role !== 'instructor') {
+        return NextResponse.redirect(getAbsoluteRedirectUrl('/login', request));
+      }
+    } else if (session.role !== 'admin') {
       return NextResponse.redirect(getAbsoluteRedirectUrl('/login', request));
     }
   }
@@ -149,7 +153,11 @@ export async function middleware(request: NextRequest) {
 
   // Protect API routes
   if (pathname.startsWith('/api/admin')) {
-    if (session.role !== 'admin') {
+    if (pathname.startsWith('/api/admin/results')) {
+      if (session.role !== 'admin' && session.role !== 'instructor') {
+        return new NextResponse(JSON.stringify({ error: 'Forbidden. Akses ditolak.' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+      }
+    } else if (session.role !== 'admin') {
       return new NextResponse(JSON.stringify({ error: 'Forbidden. Akses ditolak.' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
     }
   }

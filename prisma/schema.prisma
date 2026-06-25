@@ -105,6 +105,7 @@ model Question {
   category        String           // Kategori soal (misal: Logika, Teknis)
   difficulty      String           // Easy, Medium, Hard
   questionText    String
+  questionType    String           @default("multiple_choice") // multiple_choice, essay
   explanationText String?
   status          String           // active, archived
   createdAt       DateTime         @default(now())
@@ -220,6 +221,7 @@ model AttemptQuestion {
   attemptId              String
   questionId             String
   displayOrder           Int
+  questionType           String      @default("multiple_choice") // multiple_choice, essay
   questionTextSnapshot   String
   explanationSnapshot    String?
   optionASnapshot        String
@@ -229,8 +231,12 @@ model AttemptQuestion {
   optionESnapshot        String?
   correctOptionSnapshot  String      // Kunci jawaban asli saat ujian dibuat
   selectedOption         String?     // Pilihan kandidat (A, B, C, D, E atau null)
+  essayAnswer            String?     // Jawaban essay kandidat
   isCorrect              Boolean     @default(false)
   pointValue             Float       @default(1.0)
+  manualScore            Float?      // Nilai manual dari instruktur/admin
+  isManuallyGraded       Boolean     @default(false)
+  essayFeedback          String?     // Catatan/feedback penilaian essay
   answeredAt             DateTime?
 
   @@unique([attemptId, displayOrder])

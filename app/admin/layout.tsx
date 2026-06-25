@@ -41,10 +41,10 @@ export default function AdminLayout({
         const res = await fetch('/api/auth/me');
         if (res.ok) {
           const data = await res.json();
-          if (data.session.role !== 'admin') {
+          if (data.user.role !== 'admin') {
             router.push('/login');
           } else {
-            setSession(data.session);
+            setSession(data.user);
           }
         } else {
           router.push('/login');

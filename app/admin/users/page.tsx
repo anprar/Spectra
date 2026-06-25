@@ -10,7 +10,9 @@ import {
   Loader2,
   X,
   Check,
-  AlertTriangle
+  AlertTriangle,
+  Lock,
+  Unlock
 } from 'lucide-react';
 
 interface User {
@@ -74,7 +76,7 @@ export default function UserManagementPage() {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
           const data = await res.json();
-          setCurrentUserSession(data.session?.userId || null);
+          setCurrentUserSession(data.user?.userId || null);
         }
       } catch (e) {}
     }
@@ -235,6 +237,31 @@ export default function UserManagementPage() {
     }
   };
 
+  // Handle Block / Unblock User
+  const handleToggleBlock = async (user: User) => {
+    setActionLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !user.isActive })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setSuccessMsg(`Status keaktifan ${user.fullName} berhasil diperbarui.`);
+        fetchUsers();
+      } else {
+        setError(data.error || 'Gagal mengubah status pengguna.');
+      }
+    } catch (err) {
+      setError('Koneksi bermasalah.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'admin': return 'text-purple-400 bg-purple-500/10 border-purple-500/20';
@@ -365,7 +392,19 @@ export default function UserManagementPage() {
                       </span>
                     </td>
                     <td className="py-3.5 px-4">
-                      <div className="flex items-center justify-center space-x-2.5">
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          onClick={() => handleToggleBlock(user)}
+                          disabled={user.id === currentUserSession || actionLoading}
+                          className={`p-1.5 rounded-lg border transition-colors ${
+                            user.isActive
+                              ? 'text-red-400 hover:text-red-300 bg-red-950/20 border-red-900/30'
+                              : 'text-emerald-400 hover:text-emerald-300 bg-emerald-950/20 border-emerald-900/30'
+                          } disabled:opacity-30 disabled:pointer-events-none`}
+                          title={user.isActive ? "Blokir Pengguna" : "Aktifkan Pengguna"}
+                        >
+                          {user.isActive ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                        </button>
                         <button
                           onClick={() => openEditModal(user)}
                           className="p-1.5 text-slate-400 hover:text-[#00d8f6] bg-[#030712] hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg transition-colors"
