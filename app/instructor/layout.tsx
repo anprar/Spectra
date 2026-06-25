@@ -57,13 +57,13 @@ export default function InstructorLayout({
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/auth/logout', { method: 'POST' });
-      if (response.ok) {
-        router.push('/login');
-        router.refresh();
-      }
+      await fetch('/api/auth/logout', { 
+        method: 'POST',
+        headers: { 'Accept': 'application/json' }
+      });
+      window.location.href = '/login';
     } catch (e) {
-      console.error('Logout failed');
+      window.location.href = '/login';
     }
   };
 

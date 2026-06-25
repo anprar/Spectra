@@ -15,7 +15,8 @@ import {
   Sparkles,
   HelpCircle,
   Hourglass,
-  Check
+  Check,
+  Calendar
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -340,6 +341,24 @@ export default async function CandidateDashboardPage() {
                       <div className="flex space-x-4 text-[10px] font-mono text-slate-500 pt-1">
                         <span className="flex items-center"><Hourglass className="w-3.5 h-3.5 mr-1" /> {assign.durationMinutes} Menit</span>
                         <span className="flex items-center"><HelpCircle className="w-3.5 h-3.5 mr-1" /> {assign.questionCount} Soal Pilihan Ganda</span>
+                      </div>
+
+                      {/* Access Schedule dates */}
+                      <div className="bg-slate-950/40 border border-slate-900/50 rounded-lg p-2.5 space-y-1 text-[10px] font-sans mt-2.5 max-w-sm">
+                        <div className="flex items-center text-slate-400 font-semibold">
+                          <Calendar className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
+                          <span>Jadwal Akses Ujian:</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 font-mono text-[9px] text-slate-300 bg-slate-950/20 p-2 rounded border border-slate-900/50">
+                          <div>
+                            <span className="text-slate-500 block text-[8px] uppercase">Mulai</span>
+                            <span>{new Date(assign.availableFrom).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500 block text-[8px] uppercase">Selesai</span>
+                            <span>{new Date(assign.availableUntil).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 

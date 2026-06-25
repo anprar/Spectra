@@ -35,6 +35,16 @@ interface LessonClientProps {
   nextLessonId: string | null;
 }
 
+const getEmbedUrl = (url: string) => {
+  if (!url) return '';
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  if (match && match[2].length === 11) {
+    return `https://www.youtube.com/embed/${match[2]}`;
+  }
+  return url;
+};
+
 export default function LessonClient({
   moduleId,
   moduleTitle,
@@ -151,31 +161,104 @@ export default function LessonClient({
 
         {/* Content Body */}
         <div className="bg-[#0b0f19] border border-slate-800/80 rounded-2xl p-6 md:p-8 shadow-xl min-h-[300px]">
-          {lesson.contentBody ? (
-            <div className="prose prose-invert max-w-none">
+          {/* 1. Markdown Content (if available) */}
+          {lesson.contentBody && (
+            <div className="prose prose-invert max-w-none mb-6">
               {renderContent(lesson.contentBody)}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-48 text-xs text-slate-500 italic">
-              Tidak ada teks pembelajaran tertulis.
             </div>
           )}
 
-          {/* External links / videos integrations */}
+          {/* 2. PDF Lesson Rendering (Iframe embed & direct link) */}
+          {lesson.contentType === 'pdf' && (lesson.externalUrl || lesson.filePath) && (
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-950 rounded-lg border border-slate-800 flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-semibold text-white block mb-0.5">Dokumen PDF Materi Pelatihan</span>
+                  <p className="text-slate-500 max-w-[300px] sm:max-w-[400px] truncate font-mono">
+                    {lesson.externalUrl || lesson.filePath}
+                  </p>
+                </div>
+                <a 
+                  href={lesson.externalUrl || lesson.filePath || ''}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/35 border border-blue-500/40 text-blue-300 font-semibold rounded-lg transition-colors flex-shrink-0"
+                >
+                  Buka PDF &rarr;
+                </a>
+              </div>
+              
+              {/* Embed PDF Viewer */}
+              <div className="w-full h-[500px] rounded-xl border border-slate-800 overflow-hidden bg-slate-950 shadow-inner">
+                <iframe 
+                  src={lesson.externalUrl || lesson.filePath || ''} 
+                  className="w-full h-full border-none"
+                  title={lesson.title}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* 3. Video Lesson Rendering (YouTube iframe or HTML5 video) */}
+          {lesson.contentType === 'video' && lesson.externalUrl && (
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-955 rounded-lg border border-slate-800 flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-semibold text-white block mb-0.5">Video Pembelajaran</span>
+                  <p className="text-slate-500 max-w-[300px] sm:max-w-[400px] truncate">{lesson.externalUrl}</p>
+                </div>
+                <a 
+                  href={lesson.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-pink-600/20 hover:bg-pink-600/35 border border-pink-500/40 text-pink-300 font-semibold rounded-lg transition-colors flex-shrink-0"
+                >
+                  Buka Video &rarr;
+                </a>
+              </div>
+              
+              {/* Embed Video Player */}
+              <div className="w-full aspect-video rounded-xl border border-slate-800 overflow-hidden bg-slate-950 shadow-inner">
+                {lesson.externalUrl.includes('youtube.com') || lesson.externalUrl.includes('youtu.be') ? (
+                  <iframe 
+                    src={getEmbedUrl(lesson.externalUrl)} 
+                    className="w-full h-full border-none"
+                    allowFullScreen
+                    title={lesson.title}
+                  />
+                ) : (
+                  <video 
+                    src={lesson.externalUrl} 
+                    controls 
+                    className="w-full h-full object-contain"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 4. External Link Lesson Rendering */}
           {lesson.contentType === 'link' && lesson.externalUrl && (
-            <div className="mt-8 p-4 bg-slate-950 rounded-lg border border-slate-800 flex items-center justify-between text-xs">
+            <div className="p-4 bg-slate-955 rounded-lg border border-slate-800 flex items-center justify-between text-xs">
               <div>
                 <span className="font-semibold text-white block mb-0.5">Tautan Referensi Eksternal</span>
-                <p className="text-slate-500 max-w-[400px] truncate">{lesson.externalUrl}</p>
+                <p className="text-slate-500 max-w-[300px] sm:max-w-[400px] truncate">{lesson.externalUrl}</p>
               </div>
               <a 
                 href={lesson.externalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-[#00d8f6]/10 hover:bg-[#00d8f6]/20 border border-[#00d8f6]/30 text-[#00d8f6] font-semibold rounded-lg transition-colors"
+                className="px-4 py-2 bg-[#00d8f6]/10 hover:bg-[#00d8f6]/20 border border-[#00d8f6]/30 text-[#00d8f6] font-semibold rounded-lg transition-colors flex-shrink-0"
               >
                 Buka Tautan &rarr;
               </a>
+            </div>
+          )}
+
+          {/* 5. Fallback if no content at all */}
+          {!lesson.contentBody && !lesson.externalUrl && !lesson.filePath && (
+            <div className="flex items-center justify-center h-48 text-xs text-slate-500 italic">
+              Tidak ada konten pembelajaran tertulis maupun lampiran berkas.
             </div>
           )}
         </div>

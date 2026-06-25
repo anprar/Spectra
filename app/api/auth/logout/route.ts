@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     if (acceptHeader.includes('application/json')) {
       return NextResponse.json({ success: true, message: 'Berhasil keluar.' });
     }
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL('/login', request.url), { status: 303 });
   } catch (error) {
     console.error('Logout error:', error);
     return NextResponse.json({ error: 'Terjadi kesalahan server saat memproses logout.' }, { status: 500 });

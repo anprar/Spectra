@@ -68,6 +68,10 @@ export default function InstructorModulesPage() {
   const [lesExternalUrl, setLesExternalUrl] = useState('');
   const [lesIsRequired, setLesIsRequired] = useState(true);
 
+  // PDF Upload States
+  const [uploading, setUploading] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState('');
+
   const fetchModules = async () => {
     try {
       const res = await fetch('/api/instructor/modules');
@@ -166,9 +170,44 @@ export default function InstructorModulesPage() {
     }
   };
 
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.includes('pdf') && !file.name.endsWith('.pdf')) {
+      alert('Hanya berkas PDF yang diperbolehkan.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/instructor/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal mengunggah berkas.');
+      }
+
+      setLesExternalUrl(data.url);
+      setUploadedFileName(file.name);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   // Lesson CRUD handlers inside module modal
   const handleOpenLessonForm = (index: number | null) => {
     setActiveLessonIndex(index);
+    setUploading(false);
     if (index !== null) {
       // Edit mode
       const les = modLessons[index];
@@ -177,6 +216,7 @@ export default function InstructorModulesPage() {
       setLesContentBody(les.contentBody || '');
       setLesExternalUrl(les.externalUrl || '');
       setLesIsRequired(les.isRequired);
+      setUploadedFileName(les.contentType === 'pdf' && les.externalUrl ? 'Berkas PDF Aktif' : '');
     } else {
       // Add mode
       setLesTitle('');
@@ -184,6 +224,7 @@ export default function InstructorModulesPage() {
       setLesContentBody('');
       setLesExternalUrl('');
       setLesIsRequired(true);
+      setUploadedFileName('');
     }
     setLessonFormOpen(true);
   };
@@ -403,8 +444,9 @@ export default function InstructorModulesPage() {
 
       {/* 1. Main Module Modal (Create / Edit) */}
       {moduleModalOpen && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-40 overflow-y-auto">
-          <div className="bg-[#0b0f19] border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden relative shadow-2xl my-8">
+        <div className="fixed inset-0 z-40 overflow-y-auto bg-black/75 backdrop-blur-sm">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <div className="bg-[#0b0f19] border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden relative shadow-2xl text-left align-middle my-8">
             {/* Accent Line */}
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-600 to-cyan-500"></div>
 
@@ -606,13 +648,15 @@ export default function InstructorModulesPage() {
               </div>
             </form>
           </div>
+          </div>
         </div>
       )}
 
       {/* 2. Sub-Modal Lesson Form (Nested Add / Edit Lesson) */}
       {lessonFormOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0b0f19] border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden relative shadow-2xl">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <div className="bg-[#0b0f19] border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden relative shadow-2xl text-left align-middle my-8">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 to-indigo-500"></div>
 
             {/* Header */}
@@ -681,9 +725,81 @@ export default function InstructorModulesPage() {
                     className="w-full px-3.5 py-2 bg-[#111827] border border-slate-800 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-slate-600 transition-colors placeholder-slate-750 resize-none scrollbar-thin"
                   />
                 </div>
+              ) : lesContentType === 'pdf' ? (
+                <div className="space-y-3.5">
+                  {/* File Upload Area */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-slate-450">
+                      Unggah Berkas PDF Materi <span className="text-red-500">*</span>
+                    </label>
+                    <div className="border border-dashed border-slate-800 rounded-xl p-5 text-center bg-slate-950/40 space-y-3">
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        id="pdf-file-upload"
+                        onChange={handlePdfUpload}
+                        disabled={uploading}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="pdf-file-upload"
+                        className="cursor-pointer px-4 py-2 bg-blue-600/10 hover:bg-blue-600/25 border border-blue-500/30 text-blue-400 font-semibold rounded-lg text-xs transition-colors inline-flex items-center gap-1.5 w-fit"
+                      >
+                        {uploading ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Mengunggah...</span>
+                          </>
+                        ) : (
+                          <>
+                            <FilePlus2 className="w-3.5 h-3.5" />
+                            <span>Pilih Berkas PDF</span>
+                          </>
+                        )}
+                      </label>
+                      
+                      {uploadedFileName ? (
+                        <p className="text-[11px] text-emerald-400 font-medium">
+                          ✓ Berkas aktif: <span className="underline">{uploadedFileName}</span>
+                        </p>
+                      ) : lesExternalUrl ? (
+                        <p className="text-[11px] text-emerald-400 font-medium">
+                          ✓ Berkas aktif: <span className="underline">Tautan luar terpilih</span>
+                        </p>
+                      ) : (
+                        <p className="text-[10px] text-slate-550">
+                          Hanya menerima berkas PDF resmi (maksimal 10MB)
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Divider or fallback URL input */}
+                  <div className="relative flex py-2 items-center">
+                    <div className="flex-grow border-t border-slate-900"></div>
+                    <span className="flex-shrink mx-4 text-[9px] text-slate-600 font-mono uppercase">Atau Gunakan Tautan Luar</span>
+                    <div className="flex-grow border-t border-slate-900"></div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-slate-450">
+                      Alamat URL PDF Alternatif
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="e.g. https://drive.google.com/file/d/.../view"
+                      value={lesExternalUrl}
+                      onChange={(e) => {
+                        setLesExternalUrl(e.target.value);
+                        setUploadedFileName('');
+                      }}
+                      className="w-full px-3.5 py-2 bg-[#111827] border border-slate-800 rounded-lg text-white font-sans text-xs focus:outline-none focus:border-slate-600 transition-colors placeholder-slate-650"
+                    />
+                  </div>
+                </div>
               ) : (
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-400">
+                  <label className="block text-xs font-semibold text-slate-450">
                     Alamat URL Sumber Aset <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -692,15 +808,13 @@ export default function InstructorModulesPage() {
                     placeholder={
                       lesContentType === 'video' 
                         ? 'e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ' 
-                        : lesContentType === 'pdf' 
-                        ? 'e.g. https://drive.google.com/file/d/.../view' 
                         : 'e.g. https://spectra.com/resources'
                     }
                     value={lesExternalUrl}
                     onChange={(e) => setLesExternalUrl(e.target.value)}
                     className="w-full px-3.5 py-2 bg-[#111827] border border-slate-800 rounded-lg text-white font-sans text-xs focus:outline-none focus:border-slate-600 transition-colors placeholder-slate-650"
                   />
-                  <p className="text-[10px] text-slate-500 leading-tight">
+                  <p className="text-[10px] text-slate-550 leading-tight">
                     Sematkan tautan langsung ke media eksternal agar kandidat dapat membacanya langsung saat bimbingan belajar.
                   </p>
                 </div>
@@ -737,6 +851,7 @@ export default function InstructorModulesPage() {
                 </button>
               </div>
 
+            </div>
             </div>
           </div>
         </div>

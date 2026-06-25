@@ -570,8 +570,9 @@ export default function InstructorExamsPage() {
 
       {/* Comprehensive Exam Configuration Modal (Add / Edit) */}
       {examModalOpen && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-40 overflow-y-auto">
-          <div className="bg-[#0b0f19] border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden relative shadow-2xl my-8">
+        <div className="fixed inset-0 z-40 overflow-y-auto bg-black/75 backdrop-blur-sm">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <div className="bg-[#0b0f19] border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden relative shadow-2xl text-left align-middle my-8">
             {/* Accent Line */}
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-pink-600 to-violet-600"></div>
 
@@ -975,6 +976,7 @@ export default function InstructorExamsPage() {
               </div>
 
             </form>
+          </div>
           </div>
         </div>
       )}

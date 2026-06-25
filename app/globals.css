@@ -165,10 +165,6 @@ body {
 .light .bg-yellow-600 *,
 .light .bg-yellow-500,
 .light .bg-yellow-500 *,
-.light button.bg-slate-900,
-.light button.bg-slate-950,
-.light button.bg-slate-900 *,
-.light button.bg-slate-950 *,
 .light .rounded-full.bg-gradient-to-br,
 .light .rounded-full.bg-gradient-to-br * {
   color: #ffffff !important;

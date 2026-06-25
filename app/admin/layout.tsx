@@ -59,13 +59,13 @@ export default function AdminLayout({
   // Handle Logout
   const handleLogout = async () => {
     try {
-      const res = await fetch('/api/auth/logout', { method: 'POST' });
-      if (res.ok) {
-        router.push('/login');
-        router.refresh();
-      }
+      await fetch('/api/auth/logout', { 
+        method: 'POST',
+        headers: { 'Accept': 'application/json' }
+      });
+      window.location.href = '/login';
     } catch (e) {
-      alert('Gagal keluar dari portal. Silakan coba kembali.');
+      window.location.href = '/login';
     }
   };
 
