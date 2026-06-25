@@ -101,6 +101,17 @@ body {
   background-color: var(--color-surface-3) !important;
 }
 
+/* Redefine Candidate Welcome Card Dark Gradient to a Soft Premium Light Gradient */
+.light .from-\[\#0b0f19\] {
+  --tw-gradient-from: var(--color-surface-2) !important;
+  --tw-gradient-to: var(--color-surface-3) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+.light .to-\[\#090d16\] {
+  --tw-gradient-to: var(--color-surface-3) !important;
+}
+
+/* Global Text Colors */
 .light .text-slate-100,
 .light .text-slate-200,
 .light .text-white {
@@ -115,6 +126,60 @@ body {
 .light .text-slate-500 {
   color: var(--color-text-subtle) !important;
 }
+
+/* High Contrast Accent Mapping for Light Mode */
+.light .text-\[\#00d8f6\] {
+  color: #6d28d9 !important; /* Deep Spectral Violet for active navigation text */
+}
+.light .border-\[\#00d8f6\] {
+  border-color: #7c3aed !important;
+}
+.light .bg-\[\#00d8f6\]\/10 {
+  background-color: rgba(124, 58, 237, 0.08) !important;
+}
+
+/* Mature color tones instead of neon for light mode badges/text */
+.light .text-red-400 { color: #dc2626 !important; }
+.light .text-emerald-400 { color: #16a34a !important; }
+.light .text-amber-400, .light .text-amber-500 { color: #d97706 !important; }
+.light .text-blue-400 { color: #2563eb !important; }
+.light .text-cyan-400 { color: #0891b2 !important; }
+.light .text-violet-400 { color: #7c3aed !important; }
+
+/* Contrast Recovery: Keep text white inside solid dark elements */
+.light .bg-blue-600,
+.light .bg-blue-600 *,
+.light .bg-violet-600,
+.light .bg-violet-600 *,
+.light .bg-emerald-600,
+.light .bg-emerald-600 *,
+.light .bg-emerald-500,
+.light .bg-emerald-500 *,
+.light .bg-red-600,
+.light .bg-red-600 *,
+.light .bg-red-500,
+.light .bg-red-500 *,
+.light .bg-indigo-600,
+.light .bg-indigo-600 *,
+.light .bg-yellow-600,
+.light .bg-yellow-600 *,
+.light .bg-yellow-500,
+.light .bg-yellow-500 *,
+.light button.bg-slate-900,
+.light button.bg-slate-950,
+.light button.bg-slate-900 *,
+.light button.bg-slate-950 *,
+.light .rounded-full.bg-gradient-to-br,
+.light .rounded-full.bg-gradient-to-br * {
+  color: #ffffff !important;
+}
+
+/* Smart Typography Scaling for Better Readability in Light Mode */
+.light .text-\[8px\] { font-size: 10px !important; }
+.light .text-\[9px\] { font-size: 11px !important; }
+.light .text-\[10px\] { font-size: 12px !important; }
+.light .text-xs { font-size: 0.8125rem !important; } /* 13px */
+.light .text-sm { font-size: 0.9375rem !important; } /* 15px */
 
 .light .border-slate-800,
 .light .border-slate-800\/80,

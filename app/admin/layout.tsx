@@ -12,7 +12,9 @@ import {
   Menu,
   X,
   Shield,
-  UserCheck
+  UserCheck,
+  Database,
+  BookOpen
 } from 'lucide-react';
 
 interface Session {
@@ -79,9 +81,24 @@ export default function AdminLayout({
       icon: Users,
     },
     {
+      name: 'Kelola Bank Soal',
+      href: '/instructor/banks',
+      icon: Database,
+    },
+    {
+      name: 'Kelola Modul Belajar',
+      href: '/instructor/modules',
+      icon: BookOpen,
+    },
+    {
+      name: 'Kelola Jadwal & Ujian',
+      href: '/instructor/exams',
+      icon: Award,
+    },
+    {
       name: 'Hasil Ujian',
       href: '/admin/results',
-      icon: Award,
+      icon: UserCheck,
     },
   ];
 
