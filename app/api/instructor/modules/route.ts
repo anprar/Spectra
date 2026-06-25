@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
     }
 
-    const { title, summary, status } = await request.json();
+    const { title, summary, status, lessons } = await request.json();
 
     if (!title || !summary) {
       return NextResponse.json({ error: 'Judul dan Ringkasan wajib diisi.' }, { status: 400 });
@@ -55,15 +55,36 @@ export async function POST(request: NextRequest) {
       count++;
     }
 
-    const newModule = await db.trainingModule.create({
-      data: {
-        title,
-        slug,
-        summary,
-        status: status || 'draft',
-        createdById: session.userId,
-        publishedAt: status === 'published' ? new Date() : null,
-      },
+    const newModule = await db.$transaction(async (tx) => {
+      const mod = await tx.trainingModule.create({
+        data: {
+          title,
+          slug,
+          summary,
+          status: status || 'draft',
+          createdById: session.userId,
+          publishedAt: status === 'published' ? new Date() : null,
+        },
+      });
+
+      if (lessons && Array.isArray(lessons)) {
+        for (let i = 0; i < lessons.length; i++) {
+          const l = lessons[i];
+          await tx.trainingLesson.create({
+            data: {
+              moduleId: mod.id,
+              title: l.title,
+              contentType: l.contentType || 'text',
+              contentBody: l.contentBody || '',
+              externalUrl: l.externalUrl || '',
+              isRequired: l.isRequired !== undefined ? l.isRequired : true,
+              sortOrder: i + 1,
+            },
+          });
+        }
+      }
+
+      return mod;
     });
 
     // Write audit log

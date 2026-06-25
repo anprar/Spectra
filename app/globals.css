@@ -230,4 +230,12 @@ body {
   background-color: rgba(217, 119, 6, 0.08) !important;
 }
 
+/* Urgent Timer Header Light Mode Overrides */
+.light .bg-red-950\/40 {
+  background-color: #fef2f2 !important; /* Soft, clean red background */
+}
+.light .border-red-500\/30 {
+  border-color: #fca5a5 !important; /* Soft, clean red border */
+}
+
 
