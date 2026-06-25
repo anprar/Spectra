@@ -175,20 +175,20 @@ export default function LoginPage() {
           <p className="text-xs text-slate-650 dark:text-slate-400 font-sans">
             Gunakan akun bawaan untuk uji coba:
           </p>
-          <div className="grid grid-cols-3 gap-2 mt-2 text-[10px] font-mono">
-            <div className="bg-white dark:bg-[#111827]/40 p-1.5 rounded border border-slate-200 dark:border-slate-800/30 text-slate-700 dark:text-slate-350">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2 text-[9px] sm:text-[10px] font-mono">
+            <div className="bg-white dark:bg-[#111827]/40 p-2 rounded border border-slate-200 dark:border-slate-800/30 text-slate-700 dark:text-slate-350 flex flex-col items-center justify-between text-center overflow-hidden">
               <span className="block text-purple-600 dark:text-[#a78bfa] font-semibold">Admin</span>
-              <span>admin@spectra.com</span>
+              <span className="block break-all my-0.5 select-all">admin@spectra.com</span>
               <span className="block text-[8px] text-slate-500 dark:text-slate-500">pw: Admin123</span>
             </div>
-            <div className="bg-white dark:bg-[#111827]/40 p-1.5 rounded border border-slate-200 dark:border-slate-800/30 text-slate-700 dark:text-slate-350">
+            <div className="bg-white dark:bg-[#111827]/40 p-2 rounded border border-slate-200 dark:border-slate-800/30 text-slate-700 dark:text-slate-350 flex flex-col items-center justify-between text-center overflow-hidden">
               <span className="block text-blue-600 dark:text-blue-400 font-semibold">Instructor</span>
-              <span>instructor@spectra.com</span>
+              <span className="block break-all my-0.5 select-all">instructor@spectra.com</span>
               <span className="block text-[8px] text-slate-500 dark:text-slate-500">pw: Instructor123</span>
             </div>
-            <div className="bg-white dark:bg-[#111827]/40 p-1.5 rounded border border-slate-200 dark:border-slate-800/30 text-slate-700 dark:text-slate-350">
+            <div className="bg-white dark:bg-[#111827]/40 p-2 rounded border border-slate-200 dark:border-slate-800/30 text-slate-700 dark:text-slate-350 flex flex-col items-center justify-between text-center overflow-hidden">
               <span className="block text-cyan-600 dark:text-[#00d8f6] font-semibold">Candidate</span>
-              <span>candidate@spectra.com</span>
+              <span className="block break-all my-0.5 select-all">candidate@spectra.com</span>
               <span className="block text-[8px] text-slate-500 dark:text-slate-500">pw: Candidate123</span>
             </div>
           </div>
