@@ -16,7 +16,8 @@ import {
   HelpCircle,
   Hourglass,
   Check,
-  Calendar
+  Calendar,
+  AlertCircle
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -50,9 +51,76 @@ export default async function CandidateDashboardPage() {
     },
   });
 
-  // 2. Map and calculate progress & scheduling states for each assignment
+  // 2. Auto-create 'missed' records for expired exams with no attempts
+  const now = new Date();
+  for (const assign of assignments) {
+    const exam = assign.exam;
+    const hasAttempts = exam.attempts.length > 0;
+    const isExpired = now > exam.availableUntil;
+
+    if (isExpired && !hasAttempts) {
+      // Create a 'missed' attempt record with score 0
+      await db.examAttempt.create({
+        data: {
+          examId: exam.id,
+          candidateId: session.userId,
+          assignmentId: assign.id,
+          status: 'missed',
+          startedAt: exam.availableUntil,
+          endsAt: exam.availableUntil,
+          submittedAt: exam.availableUntil,
+          score: 0,
+          maxScore: exam.questionCount,
+          percentage: 0,
+          passed: false,
+          autoSubmitted: true,
+        },
+      });
+
+      // Update assignment status
+      await db.examAssignment.update({
+        where: { id: assign.id },
+        data: { status: 'expired' },
+      });
+
+      // Create audit log
+      await db.auditLog.create({
+        data: {
+          action: 'EXAM_MISSED',
+          userId: session.userId,
+          targetType: 'exam',
+          targetId: exam.id,
+          detail: `Kandidat tidak mengikuti ujian "${exam.title}" sebelum batas waktu ${exam.availableUntil.toISOString()}.`,
+        },
+      });
+    }
+  }
+
+  // Re-fetch assignments after potential missed records creation
+  const updatedAssignments = await db.examAssignment.findMany({
+    where: { candidateId: session.userId },
+    include: {
+      exam: {
+        include: {
+          trainingModule: {
+            include: {
+              lessons: {
+                orderBy: { sortOrder: 'asc' },
+              },
+            },
+          },
+          attempts: {
+            where: { candidateId: session.userId },
+            orderBy: { createdAt: 'desc' },
+          },
+        },
+      },
+    },
+  });
+
+  // 3. Map and calculate progress & scheduling states for each assignment
   const processedAssignments = await Promise.all(
-    assignments.map(async (assign) => {
+    updatedAssignments.map(async (assign) => {
       const exam = assign.exam;
       const trainingModule = exam.trainingModule;
       
@@ -84,16 +152,19 @@ export default async function CandidateDashboardPage() {
       const latestAttempt = exam.attempts[0];
       const isAttemptSubmitted = latestAttempt && (latestAttempt.status === 'submitted' || latestAttempt.status === 'graded');
       const isAttemptInProgress = latestAttempt && latestAttempt.status === 'in_progress';
+      const isAttemptMissed = latestAttempt && latestAttempt.status === 'missed';
 
       // Determine Scheduling Lifecycle State
-      const now = new Date();
-      let scheduleState: 'upcoming' | 'active' | 'expired' | 'completed' = 'active';
+      const nowCheck = new Date();
+      let scheduleState: 'upcoming' | 'active' | 'expired' | 'completed' | 'missed' = 'active';
 
-      if (isAttemptSubmitted) {
+      if (isAttemptMissed) {
+        scheduleState = 'missed';
+      } else if (isAttemptSubmitted) {
         scheduleState = 'completed';
-      } else if (now < exam.availableFrom) {
+      } else if (nowCheck < exam.availableFrom) {
         scheduleState = 'upcoming';
-      } else if (now > exam.availableUntil) {
+      } else if (nowCheck > exam.availableUntil) {
         scheduleState = 'expired';
       } else {
         scheduleState = 'active';
@@ -131,9 +202,9 @@ export default async function CandidateDashboardPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#030712] text-slate-800 dark:text-slate-100 flex flex-col">
       {/* Top Navbar */}
-      <header className="h-16 bg-[#0b0f19] border-b border-slate-800/80 px-6 md:px-12 flex items-center justify-between z-30 sticky top-0 backdrop-blur-md bg-[#0b0f19]/95">
+      <header className="h-16 bg-white dark:bg-[#0b0f19] border-b border-slate-200 dark:border-slate-800/80 px-6 md:px-12 flex items-center justify-between z-30 sticky top-0 backdrop-blur-md">
         <div className="flex items-center space-x-2.5">
           <img src="/spectra_logo.png" alt="SPECTRA Logo" className="w-7 h-7 object-contain" />
           <span className="font-mono text-2xl font-bold bg-gradient-to-r from-[#7c3aed] to-[#00d8f6] bg-clip-text text-transparent tracking-tighter">
@@ -146,7 +217,7 @@ export default async function CandidateDashboardPage() {
 
         <div className="flex items-center space-x-4">
           <div className="hidden sm:flex flex-col text-right">
-            <span className="text-xs font-semibold text-white font-sans">{session.fullName}</span>
+            <span className="text-xs font-semibold text-slate-800 dark:text-white font-sans">{session.fullName}</span>
             <span className="text-[10px] text-slate-500 font-mono">{session.email}</span>
           </div>
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#00d8f6] flex items-center justify-center text-white text-xs font-bold font-sans">
@@ -156,7 +227,7 @@ export default async function CandidateDashboardPage() {
           <form action="/api/auth/logout" method="POST" className="flex items-center">
             <button
               type="submit"
-              className="p-2 text-slate-500 hover:text-red-400 rounded-lg hover:bg-slate-900 transition-colors focus:outline-none"
+              className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors focus:outline-none"
               title="Keluar Portal"
             >
               <LogOut className="w-4.5 h-4.5" />
@@ -169,16 +240,16 @@ export default async function CandidateDashboardPage() {
       <main className="flex-1 p-6 md:p-12 max-w-7xl mx-auto w-full space-y-10">
         
         {/* Welcome Hero */}
-        <div className="bg-gradient-to-r from-[#0b0f19] to-[#090d16] border border-slate-800/80 rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="bg-white dark:bg-gradient-to-r dark:from-[#0b0f19] dark:to-[#090d16] border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center space-x-1.5 text-[10px] font-mono font-bold text-[#00d8f6] uppercase tracking-wider bg-[#00d8f6]/10 px-2.5 py-1 rounded-full border border-[#00d8f6]/20">
+            <div className="inline-flex items-center space-x-1.5 text-[10px] font-mono font-bold text-violet-600 dark:text-[#00d8f6] uppercase tracking-wider bg-violet-50 dark:bg-[#00d8f6]/10 px-2.5 py-1 rounded-full border border-violet-200 dark:border-[#00d8f6]/20">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Rekrutmen Berbasis Kompetensi</span>
             </div>
-            <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
               Halo, {session.fullName}! Siap Mengukur Kompetensi Anda?
             </h1>
-            <p className="text-xs md:text-sm text-slate-400 leading-relaxed">
+            <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
               SPECTRA membantu Anda mempersiapkan pengetahuan sebelum memulai evaluasi kerja nyata. Harap selesaikan seluruh materi pelatihan wajib sebelum membuka akses ujian kompetensi Anda.
             </p>
           </div>
@@ -189,13 +260,13 @@ export default async function CandidateDashboardPage() {
           
           {/* Section 1: Assigned Training Modules (1/3 width) */}
           <div className="space-y-4">
-            <h2 className="font-sans font-bold text-lg text-white flex items-center space-x-2.5">
-              <BookOpen className="w-5 h-5 text-blue-400" />
+            <h2 className="font-sans font-bold text-lg text-slate-900 dark:text-white flex items-center space-x-2.5">
+              <BookOpen className="w-5 h-5 text-blue-500 dark:text-blue-400" />
               <span>Modul Pembelajaran Wajib</span>
             </h2>
 
             {processedAssignments.filter(a => a.hasPrerequisite).length === 0 ? (
-              <div className="bg-[#0b0f19] border border-slate-800/80 rounded-xl p-8 text-center text-slate-500 text-xs">
+              <div className="bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800/80 rounded-xl p-8 text-center text-slate-500 text-xs">
                 Tidak ada modul pelatihan wajib yang ditugaskan kepada Anda.
               </div>
             ) : (
@@ -205,13 +276,13 @@ export default async function CandidateDashboardPage() {
                   .map((assign) => (
                     <div 
                       key={assign.moduleId} 
-                      className="bg-[#0b0f19] border border-slate-800/80 rounded-xl p-5 shadow-lg space-y-4 hover:border-slate-800 transition-colors"
+                      className="bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800/80 rounded-xl p-5 shadow-lg space-y-4 hover:border-slate-300 dark:hover:border-slate-800 transition-colors"
                     >
                       <div>
                         <span className="font-mono text-[9px] font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 uppercase tracking-wider">
                           Prasyarat Ujian
                         </span>
-                        <h3 className="font-sans font-semibold text-sm text-white mt-2 leading-tight">
+                        <h3 className="font-sans font-semibold text-sm text-slate-800 dark:text-white mt-2 leading-tight">
                           {assign.moduleTitle}
                         </h3>
                       </div>
@@ -239,7 +310,7 @@ export default async function CandidateDashboardPage() {
                       {/* Action Button */}
                       <Link
                         href={`/candidate/modules/${assign.moduleId}`}
-                        className={`w-full py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white font-sans text-xs font-semibold rounded-lg flex items-center justify-center space-x-2 transition-colors`}
+                        className={`w-full py-2 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-white font-sans text-xs font-semibold rounded-lg flex items-center justify-center space-x-2 transition-colors`}
                       >
                         {assign.progressPercent === 100 ? (
                           <>
@@ -261,13 +332,13 @@ export default async function CandidateDashboardPage() {
 
           {/* Section 2: Assigned Exams (2/3 width) */}
           <div className="lg:col-span-2 space-y-4">
-            <h2 className="font-sans font-bold text-lg text-white flex items-center space-x-2.5">
+            <h2 className="font-sans font-bold text-lg text-slate-900 dark:text-white flex items-center space-x-2.5">
               <Award className="w-5 h-5 text-pink-500" />
               <span>Jadwal Ujian Kompetensi Anda</span>
             </h2>
 
             {processedAssignments.length === 0 ? (
-              <div className="bg-[#0b0f19] border border-slate-800/80 rounded-xl p-16 text-center text-slate-500 text-xs">
+              <div className="bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800/80 rounded-xl p-16 text-center text-slate-500 text-xs">
                 Belum ada jadwal ujian kompetensi yang ditugaskan untuk akun Anda.
               </div>
             ) : (
@@ -275,10 +346,12 @@ export default async function CandidateDashboardPage() {
                 {processedAssignments.map((assign) => (
                   <div 
                     key={assign.assignmentId} 
-                    className={`bg-[#0b0f19] border rounded-xl p-6 shadow-lg relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 transition-colors ${
+                    className={`bg-white dark:bg-[#0b0f19] border rounded-xl p-6 shadow-lg relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 transition-colors ${
                       assign.scheduleState === 'active' && assign.isGateUnlocked
-                        ? 'border-slate-800 hover:border-slate-700'
-                        : 'border-slate-800/60 opacity-70'
+                        ? 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                        : assign.scheduleState === 'missed'
+                          ? 'border-red-200 dark:border-red-900/40 opacity-80'
+                          : 'border-slate-200 dark:border-slate-800/60 opacity-70'
                     }`}
                   >
                     {/* Top indicator strip depending on state */}
@@ -325,11 +398,17 @@ export default async function CandidateDashboardPage() {
                             <span>Sudah Dikerjakan</span>
                           </span>
                         )}
+                        {assign.scheduleState === 'missed' && (
+                          <span className="inline-flex items-center space-x-1 font-mono text-[9px] font-bold text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-500/10 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-500/20 uppercase tracking-wider">
+                            <AlertCircle className="w-2.5 h-2.5" />
+                            <span>Tidak Mengikuti</span>
+                          </span>
+                        )}
                       </div>
 
                       {/* Title & Description */}
                       <div>
-                        <h3 className="font-sans font-semibold text-base text-white">
+                        <h3 className="font-sans font-semibold text-base text-slate-800 dark:text-white">
                           {assign.examTitle}
                         </h3>
                         <p className="font-sans text-xs text-slate-400 mt-1 line-clamp-2 max-w-xl">
@@ -421,11 +500,19 @@ export default async function CandidateDashboardPage() {
                       {assign.scheduleState === 'completed' && (
                         <Link
                           href={`/candidate/attempts/${assign.latestAttempt.id}/result`}
-                          className="px-4 py-2 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-emerald-400 hover:text-emerald-300 font-sans text-xs font-semibold rounded-lg flex items-center justify-center space-x-1.5 transition-colors"
+                          className="px-4 py-2 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-850 border border-slate-200 dark:border-slate-800 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-sans text-xs font-semibold rounded-lg flex items-center justify-center space-x-1.5 transition-colors"
                         >
                           <CheckCircle2 className="w-4 h-4" />
                           <span>Lihat Hasil</span>
                         </Link>
+                      )}
+
+                      {/* State 7: Missed Exam */}
+                      {assign.scheduleState === 'missed' && (
+                        <div className="text-center p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-900/40 max-w-[180px] mx-auto">
+                          <p className="text-[10px] text-red-600 dark:text-red-400 font-sans font-semibold leading-tight">Tidak mengikuti ujian</p>
+                          <p className="text-[10px] text-red-500 dark:text-red-500 font-mono mt-1">Skor: 0%</p>
+                        </div>
                       )}
                     </div>
                   </div>

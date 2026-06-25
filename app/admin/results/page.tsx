@@ -188,7 +188,12 @@ export default function ResultsOverviewPage() {
                         {isSubmitted ? `${attempt.percentage}%` : '-'}
                       </td>
                       <td className="py-3.5 px-4 text-center">
-                        {!isSubmitted ? (
+                        {attempt.status === 'missed' ? (
+                          <span className="inline-flex items-center space-x-1 text-[10px] font-semibold text-orange-500 bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded">
+                            <XCircle className="w-3 h-3 text-orange-500" />
+                            <span>TIDAK MENGIKUTI</span>
+                          </span>
+                        ) : !isSubmitted ? (
                           <span className="inline-flex items-center space-x-1 text-[10px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
                             <Clock className="w-3 h-3" />
                             <span>Sedang Berjalan</span>

@@ -314,13 +314,13 @@ export default function ExamAttemptPage({
   const answeredCount = questions.filter((q) => q.selectedOption !== null).length;
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-200 flex flex-col justify-between font-sans">
+    <div className="h-screen bg-slate-50 dark:bg-[#030712] text-slate-800 dark:text-slate-200 flex flex-col font-sans overflow-hidden">
       
       {/* 1. STICKY TIMER HEADER BAR (Dynamic States) */}
-      <header className={`sticky top-0 z-50 w-full border-b backdrop-blur-md transition-colors duration-500 flex items-center justify-between py-3.5 px-6 md:px-12 ${
+      <header className={`sticky top-0 z-50 w-full border-b backdrop-blur-md transition-colors duration-500 flex items-center justify-between py-2.5 px-6 md:px-12 ${
         isUrgent 
-          ? 'bg-red-950/40 border-red-500/30' 
-          : 'bg-[#0b0f19]/80 border-slate-800'
+          ? 'bg-red-50/80 dark:bg-red-950/40 border-red-300 dark:border-red-500/30' 
+          : 'bg-white/80 dark:bg-[#0b0f19]/80 border-slate-200 dark:border-slate-800'
       }`}>
         <div className="flex items-center space-x-3">
           <img src="/spectra_logo.png" alt="SPECTRA Logo" className="w-5 h-5 object-contain opacity-85" />
@@ -340,8 +340,8 @@ export default function ExamAttemptPage({
           {/* Timer Box */}
           <div className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg border transition-all ${
             isUrgent 
-              ? 'bg-red-500/10 border-red-500/40 animate-pulse text-red-400' 
-              : 'bg-slate-900 border-slate-800 text-white'
+              ? 'bg-red-100 dark:bg-red-500/10 border-red-300 dark:border-red-500/40 animate-pulse text-red-600 dark:text-red-400' 
+              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white'
           }`}>
             <Clock className={`w-4 h-4 ${isUrgent ? 'text-red-500' : 'text-cyan-400'}`} />
             <span className="font-mono text-sm font-bold tracking-widest tabular-nums">
@@ -352,11 +352,11 @@ export default function ExamAttemptPage({
       </header>
 
       {/* 2. MAIN EXAM ENGINE WORKSPACE */}
-      <main className="flex-1 max-w-5xl mx-auto w-full p-6 md:p-10 grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <main className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-y-auto">
         
         {/* Left Column: Question Grid Navigator (1/4 width) */}
-        <div className="bg-[#0b0f19] border border-slate-800/80 rounded-xl p-5 shadow-lg h-fit space-y-4 lg:sticky lg:top-24">
-          <h4 className="font-sans font-semibold text-xs text-white uppercase tracking-wider border-b border-slate-800 pb-2">
+        <div className="bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800/80 rounded-xl p-4 shadow-lg h-fit space-y-3 lg:sticky lg:top-4">
+          <h4 className="font-sans font-semibold text-xs text-slate-800 dark:text-white uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-2">
             Navigasi Soal
           </h4>
           <div className="grid grid-cols-5 gap-2.5">
@@ -385,22 +385,22 @@ export default function ExamAttemptPage({
         </div>
 
         {/* Right Column: Question Stem & Shuffled Options (3/4 width) */}
-        <div className="lg:col-span-3 space-y-6 flex flex-col justify-between min-h-[400px]">
+        <div className="lg:col-span-3 space-y-4 flex flex-col justify-between">
           
           {/* Question stem */}
-          <div className="bg-[#0b0f19] border border-slate-800/80 rounded-xl p-6 shadow-md space-y-6 relative overflow-hidden">
+          <div className="bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800/80 rounded-xl p-5 shadow-md space-y-4 relative overflow-hidden flex-1 overflow-y-auto">
             {/* Display index */}
             <div className="flex items-center space-x-2 text-slate-500 text-[10px] font-mono uppercase tracking-wider">
               <span>Pertanyaan</span>
-              <span className="font-bold text-[#00d8f6]">#{currentIdx + 1} dari {questions.length}</span>
+              <span className="font-bold text-violet-600 dark:text-[#00d8f6]">#{currentIdx + 1} dari {questions.length}</span>
             </div>
 
-            <h3 className="font-sans text-sm md:text-base font-medium text-white leading-relaxed whitespace-pre-line">
+            <h3 className="font-sans text-sm font-medium text-slate-900 dark:text-white leading-relaxed whitespace-pre-line">
               {currentQuestion.questionTextSnapshot}
             </h3>
 
             {/* Options */}
-            <div className="space-y-3.5 pt-2">
+            <div className="space-y-2.5 pt-1">
               {activeOptions.map((opt) => {
                 const isChecked = currentQuestion.selectedOption === opt.key;
                 return (
@@ -408,7 +408,7 @@ export default function ExamAttemptPage({
                     key={opt.key}
                     onClick={() => handleOptionSelect(currentQuestion.questionId, opt.key)}
                     disabled={submitLoading}
-                    className={`w-full text-left px-5 py-3 rounded-xl border flex items-start space-x-3.5 transition-all focus:outline-none ${
+                    className={`w-full text-left px-4 py-2.5 rounded-xl border flex items-start space-x-3 transition-all focus:outline-none ${
                       isChecked
                         ? 'bg-violet-50 dark:bg-violet-950/20 border-violet-500 dark:border-[#00d8f6]/50 text-violet-700 dark:text-[#00d8f6] font-medium'
                         : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-800 dark:text-slate-200'
@@ -421,7 +421,7 @@ export default function ExamAttemptPage({
                     }`}>
                       {opt.key}
                     </span>
-                    <span className="text-xs md:text-sm leading-relaxed pt-0.5">{opt.text}</span>
+                    <span className="text-xs leading-relaxed pt-0.5">{opt.text}</span>
                   </button>
                 );
               })}
@@ -429,11 +429,11 @@ export default function ExamAttemptPage({
           </div>
 
           {/* Navigation Controls */}
-          <div className="flex items-center justify-between pt-6 border-t border-slate-800/40">
+          <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800/40">
             <button
               onClick={() => setCurrentIdx((prev) => Math.max(0, prev - 1))}
               disabled={currentIdx === 0 || submitLoading}
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-semibold text-slate-300 rounded-lg flex items-center space-x-1.5 transition-colors"
+              className="px-4 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-850 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-semibold text-slate-600 dark:text-slate-300 rounded-lg flex items-center space-x-1.5 transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
               <span>Sebelumnya</span>
@@ -443,7 +443,7 @@ export default function ExamAttemptPage({
               <button
                 onClick={() => setCurrentIdx((prev) => Math.min(questions.length - 1, prev + 1))}
                 disabled={submitLoading}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-slate-300 rounded-lg flex items-center space-x-1.5 transition-colors"
+                className="px-4 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-850 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 rounded-lg flex items-center space-x-1.5 transition-colors"
               >
                 <span>Selanjutnya</span>
                 <ChevronRight className="w-4 h-4" />
@@ -469,9 +469,9 @@ export default function ExamAttemptPage({
       </main>
 
       {/* 3. FOOTER MICRO-STATUS INDICATOR */}
-      <footer className="h-10 border-t border-slate-950 bg-[#060a13] px-6 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+      <footer className="h-8 border-t border-slate-200 dark:border-slate-950 bg-white dark:bg-[#060a13] px-6 flex items-center justify-between text-[10px] text-slate-500 font-mono">
         <span>SPECTRA Assessment Engine</span>
-        <div className="flex items-center space-x-1.5 text-emerald-400">
+        <div className="flex items-center space-x-1.5 text-emerald-500 dark:text-emerald-400">
           <Cloud className="w-3.5 h-3.5" />
           <span className="text-slate-500">{saving ? 'Sedang menyimpan...' : 'Jawaban tersimpan di Cloud'}</span>
         </div>

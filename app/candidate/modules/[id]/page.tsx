@@ -11,7 +11,8 @@ import {
   FileText, 
   Video, 
   Link2, 
-  ArrowRight 
+  ArrowRight,
+  Home
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -59,18 +60,18 @@ export default async function CandidateModulePage({
   const percentage = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-200 p-6 md:p-12 max-w-4xl mx-auto w-full space-y-8 font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#030712] text-slate-800 dark:text-slate-200 p-6 md:p-12 max-w-4xl mx-auto w-full space-y-8 font-sans">
       {/* Back Button */}
       <Link 
         href="/candidate" 
-        className="inline-flex items-center space-x-2 text-xs text-slate-400 hover:text-[#00d8f6] transition-colors"
+        className="inline-flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-[#00d8f6] transition-colors"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
         <span>Kembali ke Dashboard</span>
       </Link>
 
       {/* Header Info */}
-      <div className="bg-[#0b0f19] border border-slate-800/80 rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         {/* Glowing visual lines */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-600 to-cyan-500"></div>
 
@@ -131,7 +132,7 @@ export default async function CandidateModulePage({
                 </span>
 
                 {/* Lesson Card */}
-                <div className="flex-1 bg-[#0b0f19] border border-slate-800/80 rounded-xl p-5 shadow-md flex items-center justify-between gap-4 hover:border-slate-700 transition-all">
+                <div className="flex-1 bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800/80 rounded-xl p-5 shadow-md flex items-center justify-between gap-4 hover:border-slate-300 dark:hover:border-slate-700 transition-all">
                   <div className="space-y-2 min-w-0">
                     <div className="flex items-center space-x-2 text-slate-500">
                       <TypeIcon className="w-3.5 h-3.5 text-slate-400" />
@@ -143,7 +144,7 @@ export default async function CandidateModulePage({
                       )}
                     </div>
                     
-                    <h3 className="font-sans font-semibold text-sm text-white truncate max-w-lg leading-tight group-hover:text-[#00d8f6] transition-colors">
+                    <h3 className="font-sans font-semibold text-sm text-slate-800 dark:text-white truncate max-w-lg leading-tight group-hover:text-violet-600 dark:group-hover:text-[#00d8f6] transition-colors">
                       {lesson.title}
                     </h3>
                   </div>
@@ -151,7 +152,7 @@ export default async function CandidateModulePage({
                   {/* Action Link */}
                   <Link
                     href={`/candidate/modules/${id}/lessons/${lesson.id}`}
-                    className="flex-shrink-0 p-2.5 bg-[#030712] hover:bg-slate-900 border border-slate-800 hover:border-slate-600 text-slate-400 hover:text-white rounded-lg flex items-center justify-center transition-all"
+                    className="flex-shrink-0 p-2.5 bg-slate-100 dark:bg-[#030712] hover:bg-slate-200 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-600 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg flex items-center justify-center transition-all"
                     title="Buka Materi"
                   >
                     <ArrowRight className="w-4.5 h-4.5" />
@@ -162,6 +163,17 @@ export default async function CandidateModulePage({
             );
           })}
         </div>
+      </div>
+
+      {/* Close / Back to Dashboard Button */}
+      <div className="flex items-center justify-center pt-4 pb-8">
+        <Link
+          href="/candidate"
+          className="inline-flex items-center space-x-2 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-sans text-sm font-semibold transition-colors shadow-lg hover:shadow-xl"
+        >
+          <Home className="w-4 h-4" />
+          <span>Kembali ke Beranda</span>
+        </Link>
       </div>
     </div>
   );

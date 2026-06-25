@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" data-theme="dark" className="dark">
+    <html lang="id" data-theme="light" className="light">
       <body
         className={`${plusJakarta.variable} ${jetbrainsMono.variable} font-sans antialiased bg-canvas text-text-primary min-h-screen`}
       >

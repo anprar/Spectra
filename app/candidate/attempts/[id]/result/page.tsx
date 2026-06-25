@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import ScrollToTopButton from '@/components/ScrollToTopButton';
 import { 
   ArrowLeft, 
   Award, 
@@ -11,7 +12,8 @@ import {
   HelpCircle, 
   AlertTriangle,
   BookOpen,
-  ArrowRight
+  ArrowRight,
+  Home
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -55,19 +57,21 @@ export default async function CandidateResultPage({
   const releaseMode = exam.resultReleaseMode;
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-200 p-6 md:p-12 max-w-4xl mx-auto w-full space-y-8 font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#030712] text-slate-800 dark:text-slate-200 p-6 md:p-12 max-w-4xl mx-auto w-full space-y-8 font-sans">
       
+      <ScrollToTopButton />
+
       {/* Back to Dashboard */}
       <Link 
         href="/candidate" 
-        className="inline-flex items-center space-x-2 text-xs text-slate-400 hover:text-white transition-colors"
+        className="inline-flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-white transition-colors"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
         <span>Kembali ke Dashboard</span>
       </Link>
 
       {/* Main Result Banner */}
-      <div className="bg-[#0b0f19] border border-slate-800/80 rounded-2xl p-8 shadow-xl relative overflow-hidden text-center space-y-6">
+      <div className="bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800/80 rounded-2xl p-8 shadow-xl relative overflow-hidden text-center space-y-6">
         {/* Glowing border accent */}
         <div className={`absolute top-0 left-0 right-0 h-[2px] ${
           releaseMode === 'hidden'
@@ -78,10 +82,10 @@ export default async function CandidateResultPage({
         }`}></div>
 
         <div className="space-y-2">
-          <span className="font-mono text-[9px] font-bold text-slate-500 uppercase tracking-wider bg-slate-900 border border-slate-850 px-3 py-1 rounded-full">
+          <span className="font-mono text-[9px] font-bold text-slate-500 uppercase tracking-wider bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 px-3 py-1 rounded-full">
             Hasil Penilaian Ujian
           </span>
-          <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight pt-2">
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight pt-2">
             {exam.title}
           </h1>
         </div>
@@ -252,6 +256,17 @@ export default async function CandidateResultPage({
           </div>
         </div>
       )}
+
+      {/* Close / Back to Dashboard Button at bottom */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 pb-8">
+        <Link
+          href="/candidate"
+          className="inline-flex items-center space-x-2 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-sans text-sm font-semibold transition-colors shadow-lg hover:shadow-xl"
+        >
+          <Home className="w-4 h-4" />
+          <span>Kembali ke Beranda</span>
+        </Link>
+      </div>
     </div>
   );
 }
