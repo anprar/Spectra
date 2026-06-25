@@ -108,13 +108,13 @@ export default function AdminLayout({
   }, [pathname]);
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-slate-100 dark:bg-[#030712] text-slate-800 dark:text-slate-100 flex flex-col md:flex-row">
       
       {/* Sidebar for Desktop */}
-      <aside className="hidden md:flex md:flex-col md:w-64 h-screen sticky top-0 bg-[#0b0f19] border-r border-slate-800/80 flex-shrink-0">
+      <aside className="hidden md:flex md:flex-col md:w-64 h-screen sticky top-0 bg-white dark:bg-[#0b0f19] border-r border-slate-200 dark:border-slate-800/80 flex-shrink-0">
         
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800/80">
+        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800/80">
           <Link href="/admin" className="flex items-center space-x-2">
             <img src="/spectra_logo.png" alt="SPECTRA Logo" className="w-6 h-6 object-contain" />
             <span className="font-mono text-base font-bold bg-gradient-to-r from-[#7c3aed] to-[#00d8f6] bg-clip-text text-transparent tracking-tighter">
@@ -141,8 +141,8 @@ export default function AdminLayout({
                 href={item.href}
                 className={`flex items-center space-x-3 px-4 py-2.5 rounded-lg font-sans text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-gradient-to-r from-violet-600/10 to-cyan-500/10 text-[#00d8f6] border-l-2 border-[#00d8f6]'
-                    : 'text-slate-400 hover:bg-slate-900 hover:text-white'
+                    ? 'bg-violet-50 dark:bg-gradient-to-r dark:from-violet-600/10 dark:to-cyan-500/10 text-violet-600 dark:text-[#00d8f6] border-l-2 border-violet-500 dark:border-[#00d8f6]'
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <Icon className="w-4.5 h-4.5" />
@@ -153,14 +153,14 @@ export default function AdminLayout({
         </nav>
 
         {/* Admin Profile & Logout */}
-        <div className="p-4 border-t border-slate-800/80 bg-[#090d16]/50">
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-[#090d16]/50">
           {session && (
             <div className="flex items-center space-x-3 mb-4 px-2">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#00d8f6] flex items-center justify-center text-white text-xs font-bold font-sans">
                 {session.fullName.charAt(0)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white truncate font-sans">{session.fullName}</p>
+                <p className="text-xs font-semibold text-slate-900 dark:text-white truncate font-sans">{session.fullName}</p>
                 <p className="text-[10px] text-slate-500 truncate font-mono">{session.email}</p>
               </div>
             </div>
@@ -176,7 +176,7 @@ export default function AdminLayout({
       </aside>
 
       {/* Mobile Menu Header */}
-      <header className="md:hidden h-16 bg-[#0b0f19] border-b border-slate-800/80 px-4 flex items-center justify-between z-30">
+      <header className="md:hidden h-16 bg-white dark:bg-[#0b0f19] border-b border-slate-200 dark:border-slate-800/80 px-4 flex items-center justify-between z-30">
         <Link href="/admin" className="flex items-center space-x-2">
           <img src="/spectra_logo.png" alt="SPECTRA Logo" className="w-6 h-6 object-contain" />
           <span className="font-mono text-lg font-bold bg-gradient-to-r from-[#7c3aed] to-[#00d8f6] bg-clip-text text-transparent tracking-tighter">
@@ -196,10 +196,12 @@ export default function AdminLayout({
 
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-20 flex flex-col bg-[#030712] pt-16">
+        <div className="md:hidden fixed inset-0 z-20 flex flex-col bg-white/95 dark:bg-[#030712] pt-16">
           <nav className="flex-1 px-4 py-6 space-y-2">
             {navItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              const isActive = item.href === '/admin'
+                ? pathname === item.href
+                : pathname === item.href || pathname.startsWith(item.href + '/');
               const Icon = item.icon;
               return (
                 <Link
@@ -207,8 +209,8 @@ export default function AdminLayout({
                   href={item.href}
                   className={`flex items-center space-x-3 px-4 py-3 rounded-lg font-sans text-base font-medium transition-colors ${
                     isActive
-                      ? 'bg-slate-900 text-[#00d8f6]'
-                      : 'text-slate-400 hover:bg-slate-900 hover:text-white'
+                      ? 'bg-violet-50 dark:bg-slate-900 text-violet-600 dark:text-[#00d8f6]'
+                      : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -218,14 +220,14 @@ export default function AdminLayout({
             })}
           </nav>
 
-          <div className="p-4 border-t border-slate-800/80 bg-[#090d16]/50">
+          <div className="p-4 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-[#090d16]/50">
             {session && (
               <div className="flex items-center space-x-3 mb-4 px-2">
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#00d8f6] flex items-center justify-center text-white text-sm font-bold font-sans">
                   {session.fullName.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white truncate font-sans">{session.fullName}</p>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white truncate font-sans">{session.fullName}</p>
                   <p className="text-xs text-slate-500 truncate font-mono">{session.email}</p>
                 </div>
               </div>

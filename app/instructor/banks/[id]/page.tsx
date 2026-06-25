@@ -399,14 +399,14 @@ export default function BankDetailsPage({
                           key={opt.id}
                           className={`px-4 py-2.5 rounded-lg border text-xs font-sans flex items-start space-x-2 transition-colors ${
                             opt.isCorrect 
-                              ? 'bg-emerald-500/10 dark:bg-emerald-950/20 border-emerald-500/30 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-medium'
-                              : 'bg-slate-50 dark:bg-[#111827]/40 border-slate-200 dark:border-slate-800/80 text-slate-700 dark:text-slate-300'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/40 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-300 font-medium'
+                              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200'
                           }`}
                         >
                           <span className={`font-mono font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
                             opt.isCorrect 
                               ? 'bg-emerald-500 text-white font-bold' 
-                              : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                           }`}>
                             {opt.optionKey}
                           </span>
@@ -417,10 +417,10 @@ export default function BankDetailsPage({
 
                     {/* Explanation if exists */}
                     {q.explanationText && (
-                      <div className="mt-4 p-3.5 bg-slate-100 dark:bg-slate-950/80 rounded-lg border border-slate-200 dark:border-slate-800/40 text-xs text-slate-600 dark:text-slate-400 font-sans leading-relaxed flex items-start space-x-2">
-                        <AlertTriangle className="w-4 h-4 text-slate-500 flex-shrink-0 mt-0.5" />
+                      <div className="mt-4 p-3.5 bg-amber-50 dark:bg-slate-950/80 rounded-lg border border-amber-200 dark:border-slate-800/40 text-xs text-slate-700 dark:text-slate-400 font-sans leading-relaxed flex items-start space-x-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-500 dark:text-slate-500 flex-shrink-0 mt-0.5" />
                         <div>
-                          <span className="font-semibold text-slate-800 dark:text-slate-300 block mb-0.5">Pembahasan Soal:</span>
+                          <span className="font-semibold text-slate-900 dark:text-slate-300 block mb-0.5">Pembahasan Soal:</span>
                           <p>{q.explanationText}</p>
                         </div>
                       </div>

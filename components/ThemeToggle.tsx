@@ -12,9 +12,11 @@ export default function ThemeToggle() {
     setTheme(savedTheme);
     if (savedTheme === 'light') {
       document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
       document.documentElement.setAttribute('data-theme', 'light');
     } else {
       document.documentElement.classList.remove('light');
+      document.documentElement.classList.add('dark');
       document.documentElement.setAttribute('data-theme', 'dark');
     }
   }, []);
@@ -25,9 +27,11 @@ export default function ThemeToggle() {
     localStorage.setItem('spectra_theme', newTheme);
     if (newTheme === 'light') {
       document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
       document.documentElement.setAttribute('data-theme', 'light');
     } else {
       document.documentElement.classList.remove('light');
+      document.documentElement.classList.add('dark');
       document.documentElement.setAttribute('data-theme', 'dark');
     }
   };

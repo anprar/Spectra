@@ -35,24 +35,24 @@ export default function InstructorLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [session, setSession] = useState<UserSession | null>(null);
+  const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Fetch session details on mount
     const fetchSession = async () => {
       try {
-        const response = await fetch('/api/auth/login'); // Or a lightweight session check
-        // We can just verify session by parsing a client cookie or fetching profile
-        const profileRes = await fetch('/api/auth/me'); // We will create this API route shortly!
+        const response = await fetch('/api/auth/login');
+        const profileRes = await fetch('/api/auth/me');
         if (profileRes.ok) {
           const data = await profileRes.json();
           setSession(data.user);
         } else {
-          // Fallback if session fetch fails or not authenticated
           router.push('/login');
         }
       } catch (e) {
         console.error('Failed to load session');
+      } finally {
+        setLoading(false);
       }
     };
     fetchSession();
@@ -88,12 +88,23 @@ export default function InstructorLayout({
         { name: 'Jadwal & Ujian', href: '/instructor/exams', icon: Award },
       ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-[#030712] flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-10 h-10 rounded-full border-2 border-violet-500 border-t-transparent animate-spin" />
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-sans">Memuat portal...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-slate-100 dark:bg-[#030712] text-slate-800 dark:text-slate-100 flex flex-col md:flex-row">
       {/* Sidebar for Desktop */}
-      <aside className="hidden md:flex md:flex-col md:w-64 h-screen sticky top-0 bg-[#0b0f19] border-r border-slate-800/80 flex-shrink-0">
+      <aside className="hidden md:flex md:flex-col md:w-64 h-screen sticky top-0 bg-white dark:bg-[#0b0f19] border-r border-slate-200 dark:border-slate-800/80 flex-shrink-0">
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800/80">
+        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800/80">
           <Link href={isAdmin ? '/admin' : '/instructor'} className="flex items-center space-x-2">
             <img src="/spectra_logo.png" alt="SPECTRA Logo" className="w-6 h-6 object-contain" />
             <span className="font-mono text-base font-bold bg-gradient-to-r from-[#7c3aed] to-[#00d8f6] bg-clip-text text-transparent tracking-tighter">
@@ -114,7 +125,7 @@ export default function InstructorLayout({
         {/* Navigation Links */}
         <nav className="flex-1 px-4 py-6 space-y-1.5">
           {navItems.map((item) => {
-            const isActive = item.href === '/instructor'
+            const isActive = item.href === (isAdmin ? '/admin' : '/instructor')
               ? pathname === item.href
               : pathname === item.href || pathname.startsWith(item.href + '/');
             const Icon = item.icon;
@@ -124,8 +135,8 @@ export default function InstructorLayout({
                 href={item.href}
                 className={`flex items-center space-x-3 px-4 py-2.5 rounded-lg font-sans text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-gradient-to-r from-violet-600/10 to-cyan-500/10 text-[#00d8f6] border-l-2 border-[#00d8f6]'
-                    : 'text-slate-400 hover:bg-slate-900 hover:text-white'
+                    ? 'bg-violet-50 dark:bg-gradient-to-r dark:from-violet-600/10 dark:to-cyan-500/10 text-violet-600 dark:text-[#00d8f6] border-l-2 border-violet-500 dark:border-[#00d8f6]'
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <Icon className="w-4.5 h-4.5" />
@@ -136,7 +147,7 @@ export default function InstructorLayout({
         </nav>
 
         {/* Instructor Profile & Logout */}
-        <div className="p-4 border-t border-slate-800/80 bg-[#090d16]/50">
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-[#090d16]/50">
           {session?.role === 'admin' && (
             <Link
               href="/admin"
@@ -168,7 +179,7 @@ export default function InstructorLayout({
       </aside>
 
       {/* Mobile Menu Header */}
-      <header className="md:hidden h-16 bg-[#0b0f19] border-b border-slate-800/80 px-4 flex items-center justify-between z-30">
+      <header className="md:hidden h-16 bg-white dark:bg-[#0b0f19] border-b border-slate-200 dark:border-slate-800/80 px-4 flex items-center justify-between z-30">
         <Link href={isAdmin ? '/admin' : '/instructor'} className="flex items-center space-x-2">
           <img src="/spectra_logo.png" alt="SPECTRA Logo" className="w-6 h-6 object-contain" />
           <span className="font-mono text-lg font-bold bg-gradient-to-r from-[#7c3aed] to-[#00d8f6] bg-clip-text text-transparent tracking-tighter">
@@ -192,10 +203,12 @@ export default function InstructorLayout({
 
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 top-16 bg-[#030712]/95 z-20 flex flex-col border-t border-slate-800">
+        <div className="md:hidden fixed inset-0 top-16 bg-white/95 dark:bg-[#030712]/95 z-20 flex flex-col border-t border-slate-200 dark:border-slate-800">
           <nav className="flex-1 px-4 py-6 space-y-2">
             {navItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              const isActive = item.href === (isAdmin ? '/admin' : '/instructor')
+                ? pathname === item.href
+                : pathname === item.href || pathname.startsWith(item.href + '/');
               const Icon = item.icon;
               return (
                 <Link
@@ -204,8 +217,8 @@ export default function InstructorLayout({
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center space-x-3 px-4 py-3 rounded-lg font-sans text-base font-medium transition-colors ${
                     isActive
-                      ? 'bg-gradient-to-r from-violet-600/15 to-cyan-500/15 text-[#00d8f6]'
-                      : 'text-slate-400 hover:bg-slate-900 hover:text-white'
+                      ? 'bg-violet-50 dark:bg-gradient-to-r dark:from-violet-600/15 dark:to-cyan-500/15 text-violet-600 dark:text-[#00d8f6]'
+                      : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <Icon className="w-5 h-5" />
